@@ -2,12 +2,12 @@ import json
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 from src.catching import attempt_catch
 from src.pokemon import PokemonFactory, StatusEffect
 
+# To run: python exerc_2b.py configs/alltypes.json
 
 if __name__ == "__main__":
     
@@ -88,28 +88,10 @@ if __name__ == "__main__":
     # Add each result to a summary csv
     summary_2b.to_csv("capture_summary_2b.csv", index=False)
 
-    # Convertir el resumen final a formato JSON para ver mejor
+   
     summary_json = summary_2b.to_dict(orient='records')
     with open("capture_summary_2b.json", "w") as jsonfile:
         json.dump(summary_json, jsonfile, indent=4)
 
-    # STATEMENT DE FINALIZACION
-    print("Datos guardados en 'capture_results.csv', 'capture_summary.csv', y 'capture_summary.json'.")
-    # Graficar los resultados para un Pokémon específico (por ejemplo, Snorlax)
-    pokemon_to_plot = "Snorlax"
-    filtered_data = summary_2b[(summary_2b['pokemon'] == pokemon_to_plot)]
-    
-    plt.figure(figsize=(12, 6))
-    for status_effect in filtered_data['status_effect'].unique():
-        subset = filtered_data[filtered_data['status_effect'] == status_effect]
-        plt.plot(subset['health_points'], subset['average_capture_rate'], label=status_effect)
-        plt.fill_between(subset['health_points'], subset['average_capture_rate'] - np.sqrt(subset['variance']),
-                         subset['average_capture_rate'] + np.sqrt(subset['variance']), alpha=0.2)
-
-    plt.title(f'Evolución de la Tasa de Captura para {pokemon_to_plot}')
-    plt.xlabel('Puntos de Salud')
-    plt.ylabel('Promedio de Tasa de Captura')
-    plt.legend(title='Estado')
-    plt.show()
-
- 
+   
+  

@@ -2,11 +2,12 @@ import json
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 from src.catching import attempt_catch
 from src.pokemon import PokemonFactory, StatusEffect
+
+# To run: python exerc_2a.py configs/alltypes.json
 
 if __name__ == "__main__":
     
@@ -19,6 +20,7 @@ if __name__ == "__main__":
     summary_2a = pd.DataFrame(columns=['pokemon', 'pokeball', 'status_effect', 'noise', 'average_capture_rate', 'effectiveness', 'variance'])
 
     # Open the json with all the pokemons and pokeballs and assign to variables
+    # To run: python exerc_2a.py configs/alltypes.json
     with open(f"{sys.argv[1]}", "r") as f:
         config = json.load(f)
         pokemons = config["pokemons"]
@@ -82,12 +84,11 @@ if __name__ == "__main__":
     # Add each result to a summary csv
     summary_2a.to_csv("capture_summary.csv", index=False)
 
-    # Convertir el resumen final a formato JSON para ver mejor
+    
     summary_json = summary_2a.to_dict(orient='records')
     with open("capture_summary.json", "w") as jsonfile:
         json.dump(summary_json, jsonfile, indent=4)
 
-    # STATEMENT DE FINALIZACION
-    print("Datos guardados en 'capture_results.csv', 'capture_summary.csv', y 'capture_summary.json'.")
+ 
 
  
