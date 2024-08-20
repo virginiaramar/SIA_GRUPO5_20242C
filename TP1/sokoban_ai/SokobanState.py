@@ -103,12 +103,13 @@ def bfs_sokoban(initial_state):
         nb_boundary = len(queue)
 
     end = time.time()
-    return Solution(path=None, time=end - start, cost=None, nb_nodes=nb_nodes, nb_boundary=0)  # If no solution found
+    return Solution(path=None, time=end - start, cost=None, nb_nodes=nb_nodes, nb_boundary=0)
 
 
 def show_path(parent, current_state):
     path = []
     parent_path = parent[current_state]
+    path.append(current_state)
     while parent_path:
         path.append(parent_path)
         parent_path = parent[parent_path]
