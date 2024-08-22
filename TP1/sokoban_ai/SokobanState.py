@@ -76,14 +76,13 @@ class SokobanState:
 
 def bfs_sokoban(initial_state):
     start = time.time()
-    queue = deque([initial_state])
+    queue = [initial_state]
     visited = set()
     parent = {initial_state: None}
     nb_nodes = 0
-    nb_boundary = 1
 
     while queue:
-        current_state = queue.popleft()
+        current_state = queue.pop(0)
         nb_nodes += 1
 
         if current_state.is_goal_state():
@@ -100,10 +99,35 @@ def bfs_sokoban(initial_state):
                 queue.append(new_state)
                 parent[new_state] = current_state
 
-        nb_boundary = len(queue)
-
     end = time.time()
     return Solution(path=None, time=end - start, cost=None, nb_nodes=nb_nodes, nb_boundary=0)
+
+
+def dfs_sokoban(visited, initial_state, parent, nb_nodes, start):
+    print(initial_state)
+
+    # Check if the current state is the goal state
+    if initial_state.is_goal_state():
+        end = time.time()
+        path = show_path(parent,initial_state)
+        cost = len(path) - 1  # Cost is the number of moves
+        return Solution(path=path, time=end - start, cost=cost, nb_nodes=nb_nodes, nb_boundary=0)
+
+    # If this state hasn't been visited
+    if initial_state and initial_state not in visited:
+        nb_nodes += 1  # Increment the number of expanded nodes
+        visited.add(initial_state)
+
+        # Try all possible moves (up, down, left, right)
+        for direction in ["up", "down", "left", "right"]:
+            new_state = initial_state.move(direction)
+            if new_state and new_state not in visited:
+                parent[new_state] = initial_state  # Track the parent for path reconstruction
+                result = dfs_sokoban(visited, new_state, parent, nb_nodes, start)
+                if result:
+                    return result
+
+    return None
 
 
 def show_path(parent, current_state):
