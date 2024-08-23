@@ -1,180 +1,122 @@
-# Run python BOARDS\game.py y cambiar el nombre de los levels
+class SokobanState:
+    def __init__(self, player_pos, box_positions, goal_positions, walls, grid_size):
+        self.player_pos = player_pos
+        self.box_positions = frozenset(box_positions)
+        self.goal_positions = frozenset(goal_positions)
+        self.walls = frozenset(walls)
+        self.grid_size = grid_size
 
-from enum import Enum
-from utils.direction import Direction
+    def move(self, direction):
+        directions = {
+            'up': (0, -1),
+            'down': (0, 1),
+            'left': (-1, 0),
+            'right': (1, 0)
+        }
 
+        if direction not in directions:
+            raise ValueError("Invalid direction. Use 'up', 'down', 'left', or 'right'.")
 
-class SokobanGameState:
-    def __init__(self, num_moves=0):
-        self.board_layout = []
-        self.goal_positions = set()
-        self.box_positions = set()
-        self.player_position = None
-        self.num_moves = num_moves
-        self.move_history = []
+        delta_x, delta_y = directions[direction]
+        new_player_pos = (self.player_pos[0] + delta_x, self.player_pos[1] + delta_y)
 
-    def __str__(self):
-        return ''.join(str(move) for move in self.move_history)
+        # Verifica si el nuevo movimiento está dentro del rango del tablero
+        if not (0 <= new_player_pos[0] < self.grid_size[0] and 0 <= new_player_pos[1] < self.grid_size[1]):
+            return None
+
+        if new_player_pos in self.walls:
+            return None  # El jugador no puede moverse a través de paredes
+
+        if new_player_pos in self.box_positions:
+            new_box_pos = (new_player_pos[0] + delta_x, new_player_pos[1] + delta_y)
+            if new_box_pos in self.walls or new_box_pos in self.box_positions:
+                return None  # No se puede mover la caja a través de paredes o otras cajas
+
+            # Mueve la caja
+            new_box_positions = set(self.box_positions)
+            new_box_positions.remove(new_player_pos)
+            new_box_positions.add(new_box_pos)
+        else:
+            new_box_positions = self.box_positions
+
+        # Crea un nuevo estado con la nueva posición del jugador y las cajas
+        return SokobanState(new_player_pos, new_box_positions, self.goal_positions, self.walls, self.grid_size)
+
+    def is_goal_state(self):
+        return self.box_positions == self.goal_positions
 
     def __eq__(self, other):
-        return self.box_positions == other.box_positions and self.player_position == other.player_position
+        return (self.player_pos == other.player_pos and
+                self.box_positions == other.box_positions)
 
     def __hash__(self):
-        return hash((tuple(self.box_positions), self.player_position))
-
-    def remaining_boxes(self):
-        return len(self.box_positions - self.goal_positions)
-
-    def clone(self):
-        cloned_state = SokobanGameState()
-        cloned_state.board_layout = self.board_layout
-        cloned_state.box_positions = set(self.box_positions)
-        cloned_state.goal_positions = set(self.goal_positions)
-        cloned_state.player_position = self.player_position
-        cloned_state.num_moves = self.num_moves
-        cloned_state.move_history = self.move_history[:]
-        return cloned_state
-
-
-class CellType(Enum):
-    EMPTY = ' '
-    OBSTACLE = '#' #Wall
-    TARGET = '.'
-    BOX = '$'
-    BOX_ON_TARGET = '*'
-    PLAYER = '@'
-
-    def __new__(cls, symbol: str):
-        obj = object.__new__(cls)
-        obj._value_ = symbol
-        return obj
-
-    def __init__(self, symbol: str):
-        self.symbol = symbol
+        return hash((self.player_pos, self.box_positions))
 
     def __str__(self):
-        return self.symbol
+        width, height = self.grid_size
+        grid = [[' ' for _ in range(width)] for _ in range(height)]
 
-    def __eq__(self, other):
-        return self.symbol == other.symbol
+        for (x, y) in self.walls:
+            if 0 <= x < width and 0 <= y < height:
+                grid[y][x] = '#'
 
+        for (x, y) in self.goal_positions:
+            if 0 <= x < width and 0 <= y < height:
+                grid[y][x] = '.'
 
-class SokobanGame:
-    GOALS_BOXES_MISMATCH = -1
-    NO_GOALS_OR_BOXES = -2
-
-    def __init__(self):
-        self.state = SokobanGameState()
-
-    def load_board(self, file_path='TP1/boards/board.txt'):
-        with open(file_path, 'r') as file:
-            x = 0
-            y = 0
-            max_length = 0
-
-            for line in file:
-                self.state.board_layout.append([])
-                for char in line.strip():
-                    if char == CellType.EMPTY.symbol:
-                        self.state.board_layout[y].append(CellType.EMPTY)
-                    elif char == CellType.OBSTACLE.symbol:
-                        self.state.board_layout[y].append(CellType.OBSTACLE)
-                    elif char == CellType.TARGET.symbol:
-                        self.state.goal_positions.add((x, y))
-                        self.state.board_layout[y].append(CellType.EMPTY)
-                    elif char == CellType.PACKAGE.symbol:
-                        self.state.box_positions.add((x, y))
-                        self.state.board_layout[y].append(CellType.EMPTY)
-                    elif char == CellType.PACKAGE_ON_TARGET.symbol:
-                        self.state.box_positions.add((x, y))
-                        self.state.goal_positions.add((x, y))
-                        self.state.board_layout[y].append(CellType.EMPTY)
-                    elif char == CellType.PLAYER.symbol:
-                        self.state.player_position = (x, y)
-                        self.state.board_layout[y].append(CellType.EMPTY)
-                    x += 1
-                x = 0
-                y += 1
-
-            if len(self.state.goal_positions) != len(self.state.box_positions):
-                return self.GOALS_BOXES_MISMATCH
-
-            if not self.state.goal_positions:
-                return self.NO_GOALS_OR_BOXES
-
-            for line in self.state.board_layout:
-                max_length = max(max_length, len(line))
-
-            for line in self.state.board_layout:
-                while len(line) < max_length:
-                    line.append(CellType.EMPTY)
-
-    def display_board(self):
-        for y, row in enumerate(self.state.board_layout):
-            for x, cell in enumerate(row):
-                if (x, y) == self.state.player_position:
-                    print(CellType.PLAYER.symbol, end='')
-                elif (x, y) in self.state.box_positions:
-                    if (x, y) in self.state.goal_positions:
-                        print(CellType.PACKAGE_ON_TARGET.symbol, end='')
-                    else:
-                        print(CellType.PACKAGE.symbol, end='')
-                elif (x, y) in self.state.goal_positions:
-                    print(CellType.TARGET.symbol, end='')
+        for (x, y) in self.box_positions:
+            if 0 <= x < width and 0 <= y < height:
+                if (x, y) in self.goal_positions:
+                    grid[y][x] = '*'
                 else:
-                    print(cell.symbol, end='')
-            print()
-        print()
-        print('Goals:', ' '.join(str(goal) for goal in self.state.goal_positions))
-        print('Player position:', self.state.player_position)
-        print('Boxes remaining:', self.state.remaining_boxes())
-        print('Total moves:', self.state.num_moves)
+                    grid[y][x] = '$'
 
-    def move_player(self, direction: Direction):
-        move_x, move_y = direction.direction.x, direction.direction.y
-        new_player_pos = (self.state.player_position[0] + move_x, self.state.player_position[1] + move_y)
-        new_box_pos = (self.state.player_position[0] + 2 * move_x, self.state.player_position[1] + 2 * move_y)
+        px, py = self.player_pos
+        if 0 <= px < width and 0 <= py < height:
+            grid[py][px] = '@'
 
-        if self.is_valid_move(new_player_pos) and self.is_empty(new_player_pos):
-            self.state.player_position = new_player_pos
-        elif new_player_pos in self.state.box_positions and self.is_valid_move(new_box_pos) and self.is_empty(new_box_pos):
-            self.state.box_positions.remove(new_player_pos)
-            self.state.box_positions.add(new_box_pos)
-            self.state.player_position = new_player_pos
-        else:
-            return
+        return '\n'.join(''.join(row) for row in grid)
 
-        self.state.num_moves += 1
-        self.state.move_history.append(direction)
+def read_file_to_matrix(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
 
-    def remaining_boxes(self):
-        return self.state.remaining_boxes()
+    # Determinar el ancho máximo del tablero
+    max_width = max(len(line.rstrip()) for line in lines)
+    
+    # Convertir cada línea del archivo en una fila de la matriz, rellenando con espacios si es necesario
+    matrix = [list(line.rstrip().ljust(max_width)) for line in lines]
 
-    def check_win(self):
-        return self.state.remaining_boxes() == 0
+    return matrix
 
-    def is_empty(self, position):
-        return (self.state.board_layout[position[1]][position[0]] == CellType.EMPTY) and \
-               (position not in self.state.box_positions)
+def load_board_from_file(file_path):
+    matrix = read_file_to_matrix(file_path)
 
-    def is_valid_move(self, position):
-        return 0 <= position[0] < len(self.state.board_layout[0]) and \
-               0 <= position[1] < len(self.state.board_layout)
+    # Determinar el tamaño del tablero
+    grid_size = (len(matrix[0]), len(matrix))
 
-    def update_state(self, state: SokobanGameState):
-        self.state = state.clone()
+    player_pos = None
+    box_positions = set()
+    goal_positions = set()
+    walls = set()
 
-    def get_state(self):
-        return self.state
+    for y, row in enumerate(matrix):
+        for x, cell in enumerate(row):
+            if cell == '#':
+                walls.add((x, y))
+            elif cell == '@':
+                player_pos = (x, y)
+            elif cell == '$':
+                box_positions.add((x, y))
+            elif cell == '.':
+                goal_positions.add((x, y))
+            elif cell == '*':
+                box_positions.add((x, y))
+                goal_positions.add((x, y))
 
-    def check_deadlock(self):
-        for box in self.state.box_positions:
-            if box in self.state.goal_positions:
-                continue
-            vertical_blocked = (self.state.board_layout[box[1] - 1][box[0]] == CellType.OBSTACLE) or \
-                               (self.state.board_layout[box[1] + 1][box[0]] == CellType.OBSTACLE)
-            horizontal_blocked = (self.state.board_layout[box[1]][box[0] - 1] == CellType.OBSTACLE) or \
-                                 (self.state.board_layout[box[1]][box[0] + 1] == CellType.OBSTACLE)
-            if vertical_blocked and horizontal_blocked:
-                return True
-        return False
+    return SokobanState(player_pos, box_positions, goal_positions, walls, grid_size)
+
+if __name__ == "__main__":
+    file_path = 'BOARDS\LEVELS\difficult.txt'  # Cambia esto a la ruta correcta de tu archivo
+    initial_state = load_board_from_file(file_path)
+    print(initial_state)

@@ -1,3 +1,5 @@
+# Run python BOARDS\game.py y cambiar el nombre de los levels
+
 import pygame
 from pygame.locals import *
 
@@ -58,7 +60,7 @@ def load_board_from_file(filename):
 
 if __name__ == "__main__":
     # Cargar el tablero desde el archivo
-    board = load_board_from_file('BOARDS/LEVELS/difficult.txt')
+    board = load_board_from_file('BOARDS/LEVELS/medium.txt')
     game = SokobanGame(board)
     game.run()
 
