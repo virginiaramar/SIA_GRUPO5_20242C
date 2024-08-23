@@ -51,6 +51,10 @@ class SokobanState:
 
     def __hash__(self):
         return hash((self.player_pos, self.box_positions))
+    
+    def __lt__(self, other):
+        return (self.player_pos, self.box_positions) < (other.player_pos, other.box_positions)
+
 
     def __str__(self):
         width, height = self.grid_size

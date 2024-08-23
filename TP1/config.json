@@ -1,0 +1,14 @@
+{
+    "test": {
+        "level": "LEVELS/easy.txt",
+        "algorithm": "IDDFS",
+        "parameters": {
+            "depth_step": 10,
+            "max_depth": 1000000,
+            "max_expanded_nodes": 1000000
+        },
+        "heuristic": "H4",
+        "print": true,
+        "print_time": 0.2
+    }
+}
