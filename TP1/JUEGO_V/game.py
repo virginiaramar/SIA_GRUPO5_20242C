@@ -16,11 +16,11 @@ class SokobanGame:
 
         # Cargar imágenes
         self.images = {
-            '#': pygame.image.load('BOARDS/IMAGES/WALL.png'),
-            '@': pygame.image.load('BOARDS/IMAGES/PLAYER.png'),
-            '$': pygame.image.load('BOARDS/IMAGES/BOX.png'),
-            '.': pygame.image.load('BOARDS/IMAGES/GOAL.png'),
-            '*': pygame.image.load('BOARDS/IMAGES/BOX_ON_GOAL.png'),
+            '#': pygame.image.load('JUEGO_V/IMAGES/WALL.png'),
+            '@': pygame.image.load('JUEGO_V/IMAGES/PLAYER.png'),
+            '$': pygame.image.load('JUEGO_V/IMAGES/BOX.png'),
+            '.': pygame.image.load('JUEGO_V/IMAGES/GOAL.png'),
+            '*': pygame.image.load('JUEGO_V/IMAGES/BOX_ON_GOAL.png'),
             ' ': None  # Espacio vacío, no requiere imagen
         }
 
