@@ -1,5 +1,3 @@
-# Run python BOARDS\game.py y cambiar el nombre de los levels
-
 import pygame
 from pygame.locals import *
 
@@ -16,13 +14,17 @@ class SokobanGame:
 
         # Cargar imágenes
         self.images = {
-            '#': pygame.image.load('JUEGO_V/IMAGES/WALL.png'),
-            '@': pygame.image.load('JUEGO_V/IMAGES/PLAYER.png'),
-            '$': pygame.image.load('JUEGO_V/IMAGES/BOX.png'),
-            '.': pygame.image.load('JUEGO_V/IMAGES/GOAL.png'),
+            '#': pygame.image.load('JUEGO_V/IMAGES/pared2.png'),
+            '@': pygame.image.load('JUEGO_V/IMAGES/mario.png'),
+            '$': pygame.image.load('JUEGO_V/IMAGES/cajama.png'),
+            '.': pygame.image.load('JUEGO_V/IMAGES/bandera2.png'),
             '*': pygame.image.load('JUEGO_V/IMAGES/BOX_ON_GOAL.png'),
             ' ': None  # Espacio vacío, no requiere imagen
         }
+
+        # Cargar imagen de fondo
+        self.background_image = pygame.image.load('JUEGO_V/IMAGES/hierba2.jpg')  # Reemplaza con tu imagen de fondo
+        self.background_image = pygame.transform.scale(self.background_image, (640, 480))  # Ajustar al tamaño de la pantalla
 
         # Redimensionar imágenes para ajustarlas al tamaño de la celda
         self.images = {
@@ -31,9 +33,10 @@ class SokobanGame:
         }
 
     def draw_board(self):
-        # Rellena la pantalla con color marrón claro
-        self.screen.fill((227, 212, 195))  # Color de fondo del tablero
+        # Dibujar la imagen de fondo
+        self.screen.blit(self.background_image, (0, 0))
 
+        # Dibujar el tablero
         for y, row in enumerate(self.board):
             for x, char in enumerate(row):
                 image = self.images.get(char)
