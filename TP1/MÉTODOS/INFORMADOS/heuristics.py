@@ -54,33 +54,33 @@ class H3(Heuristics):
 
 # Calcula la distancia mínima del jugador a la caja y la distancia de cada caja a cualquier objetivo,
 # considerando si el camino está despejado (sin obstáculos).
-class H4(Heuristics):
-    def heuristic(self):
-        player_to_box = self._distance_to_nearest_box()
-        box_to_goal = self._distance_from_box_to_goals()
-        return player_to_box + box_to_goal
+# class H4(Heuristics):
+#     def heuristic(self):
+#         player_to_box = self._distance_to_nearest_box()
+#         box_to_goal = self._distance_from_box_to_goals()
+#         return player_to_box + box_to_goal
 
-    def _distance_to_nearest_box(self):
-        min_distance = float('inf')
-        for box in self.state.box_positions:
-            if self.is_path_clear(self.state.player_pos, box):
-                distance = abs(self.state.player_pos[0] - box[0]) + abs(self.state.player_pos[1] - box[1])
-                min_distance = min(min_distance, distance)
-        return min_distance if min_distance != float('inf') else 0
+#     def _distance_to_nearest_box(self):
+#         min_distance = float('inf')
+#         for box in self.state.box_positions:
+#             if self.is_path_clear(self.state.player_pos, box):
+#                 distance = abs(self.state.player_pos[0] - box[0]) + abs(self.state.player_pos[1] - box[1])
+#                 min_distance = min(min_distance, distance)
+#         return min_distance if min_distance != float('inf') else 0
 
-    def _distance_from_box_to_goals(self):
-        total_distance = 0
-        for box in self.state.box_positions:
-            min_distance = float('inf')
-            for goal in self.state.goal_positions:
-                if self.is_path_clear(box, goal):
-                    distance = abs(box[0] - goal[0]) + abs(box[1] - goal[1])
-                    min_distance = min(min_distance, distance)
-            total_distance += min_distance if min_distance != float('inf') else 0
-        return total_distance
+#     def _distance_from_box_to_goals(self):
+#         total_distance = 0
+#         for box in self.state.box_positions:
+#             min_distance = float('inf')
+#             for goal in self.state.goal_positions:
+#                 if self.is_path_clear(box, goal):
+#                     distance = abs(box[0] - goal[0]) + abs(box[1] - goal[1])
+#                     min_distance = min(min_distance, distance)
+#             total_distance += min_distance if min_distance != float('inf') else 0
+#         return total_distance
 
 # Suma las distancias de H4 más una penalización por la presencia de obstáculos, que representa un costo adicional por estar en un estado bloqueado.
-class H5(Heuristics):
+class H4(Heuristics):
     def heuristic(self):
         player_to_box = self._distance_to_nearest_box()
         box_to_goal = self._distance_from_box_to_goals()
