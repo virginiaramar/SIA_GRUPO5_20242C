@@ -4,13 +4,18 @@ from pygame.locals import *
 class SokobanGame:
     def __init__(self, board):
         pygame.init()
-        self.screen = pygame.display.set_mode((640, 480))
-        pygame.display.set_caption('Sokoban')
-        self.clock = pygame.time.Clock()
-        self.board = board
+        
+        # Dimensiones de la ventana basadas en el tamaño del tablero
         self.cell_size = 40  # Tamaño de cada celda en píxeles
         self.rows = len(board)
         self.cols = len(board[0])
+        window_width = self.cols * self.cell_size
+        window_height = self.rows * self.cell_size
+
+        self.screen = pygame.display.set_mode((window_width, window_height))
+        pygame.display.set_caption('Sokoban')
+        self.clock = pygame.time.Clock()
+        self.board = board
 
         # Cargar imágenes
         self.images = {
@@ -23,8 +28,8 @@ class SokobanGame:
         }
 
         # Cargar imagen de fondo
-        self.background_image = pygame.image.load('JUEGO_V/IMAGES/hierba2.jpg')  # Reemplaza con tu imagen de fondo
-        self.background_image = pygame.transform.scale(self.background_image, (640, 480))  # Ajustar al tamaño de la pantalla
+        self.background_image = pygame.image.load('JUEGO_V/IMAGES/hierba2.jpg')
+        self.background_image = pygame.transform.scale(self.background_image, (window_width, window_height))
 
         # Redimensionar imágenes para ajustarlas al tamaño de la celda
         self.images = {
@@ -63,7 +68,6 @@ def load_board_from_file(filename):
 
 if __name__ == "__main__":
     # Cargar el tablero desde el archivo
-    board = load_board_from_file('BOARDS/LEVELS/medium.txt')
+    board = load_board_from_file('BOARDS/LEVELS/impossible.txt')
     game = SokobanGame(board)
     game.run()
-
