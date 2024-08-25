@@ -1,0 +1,15 @@
+bfs,levels/level2.txt,0.9615516662597656,32,6552,354,31
+bfs,levels/level2.txt,N/A,0.9277446269989014,32,6552,354,31
+astar,levels/level2.txt,advanced_heuristic,0.6021173000335693,32,1529,429,31
+bfs,levels/level1.txt,N/A,0.0,2,3,1,1
+dfs,levels/level2.txt,N/A,0.3689768314361572,180,6371,141,179
+greedy,levels/level2.txt,advanced_heuristic,0.21803760528564453,34,659,230,33
+greedy,levels/level2.txt,advanced_heuristic,0.25359582901000977,34,659,230,33
+greedy,levels/level2.txt,advanced_heuristic,0.3313732147216797,34,659,230,33
+greedy,levels/level2.txt,advanced_heuristic,0.5594832897186279,34,659,230,33
+greedy,levels/level2.txt,advanced_heuristic,0.30556607246398926,34,659,230,33
+greedy,levels/level1.txt,advanced_heuristic,0.0009999275207519531,4,4,8,3
+greedy,levels/level2.txt,advanced_heuristic,0.24096298217773438,34,659,230,33
+greedy,levels/level2.txt,h4_heuristic,0.7702076435089111,40,1451,356,39
+greedy,levels/level2.txt,h4_heuristic,0.6618747711181641,40,1451,356,39
+greedy,levels/impossible.txt,h4_heuristic,0.0040013790130615234,0,43,0,0
