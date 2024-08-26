@@ -1,5 +1,5 @@
 {
   "level_file": "levels\\level2.txt",
-  "algorithm": "bfs",
+  "algorithm": "dfs",
   "heuristic": "h4_heuristic"
 }
