@@ -24,7 +24,12 @@ def process_data(input_file):
     }
     df = df.rename(columns=column_mapping)
     
+    # Eliminar sufijos '_nan' en los métodos
     df['method'] = df['method'].str.replace('_nan', '')
+    
+    # Convertir tiempo a milisegundos para el nivel 1
+    df.loc[df['level'] == 1, 'time_avg'] *= 1000
+    df.loc[df['level'] == 1, 'time_std'] *= 1000
     
     print("\nColumnas después del procesamiento:")
     print(df.columns)
@@ -37,7 +42,7 @@ def create_refined_graphs(df):
     plt.rcParams['font.family'] = 'sans-serif'
 
     metrics = [
-        ('time_avg', 'time_std', 'Tiempo de Resolución (s)'),
+        ('time_avg', 'time_std', 'Tiempo de Resolución'),
         ('moves_avg', 'moves_std', 'Cantidad de Pasos'),
         ('nodes_expanded_avg', 'nodes_expanded_std', 'Cantidad de Nodos Expandidos'),
         ('frontier_size_avg', 'frontier_size_std', 'Tamaño de Frontera')
@@ -48,7 +53,7 @@ def create_refined_graphs(df):
              'greedy_h1_heuristic', 'greedy_h2_heuristic', 'greedy_h3_heuristic', 'greedy_h4_heuristic']
 
     method_labels = {
-        'bfs': 'BFS', 'dfs': 'DFS', 'iddfs': 'IDFS',
+        'bfs': 'BFS', 'dfs': 'DFS', 'iddfs': 'IDDFS',
         'astar_h1_heuristic': 'A* H1', 'astar_h2_heuristic': 'A* H2',
         'astar_h3_heuristic': 'A* H3', 'astar_h4_heuristic': 'A* H4',
         'greedy_h1_heuristic': 'Greedy H1', 'greedy_h2_heuristic': 'Greedy H2',
@@ -78,17 +83,32 @@ def create_refined_graphs(df):
                           yerr=yerr, capsize=5, color='lightblue', edgecolor='black', 
                           error_kw={'ecolor': 'red', 'capthick': 2, 'elinewidth': 2})
 
-            ax.set_title(f'{title} para Nivel {level} con cada Método de Búsqueda', fontsize=16)
-            ax.set_xlabel('Método de Búsqueda', fontsize=12)
-            ax.set_ylabel(title, fontsize=12)
+            # Ajustar etiquetas según nivel y unidad
+            if level == 1 and mean_col == 'time_avg':
+                title_unit = '(ms)'
+            elif mean_col == 'time_avg':
+                title_unit = '(s)'
+            else:
+                title_unit = ''
+            
+            ax.set_ylabel(f'{title} {title_unit}', fontsize=14)
+            ax.set_title(f'{title} {title_unit} para Nivel {level} con cada Método de Búsqueda', fontsize=16)
+            
+            ax.set_xlabel('Método de Búsqueda', fontsize=14)
             
             ax.set_xticks(range(len(level_data)))
-            ax.set_xticklabels([method_labels.get(m, m) for m in level_data['method']], rotation=45, ha='right')
+            ax.set_xticklabels([method_labels.get(m, m) for m in level_data['method']], rotation=45, ha='right', fontsize=12)
             
             for i, bar in enumerate(bars):
                 height = bar.get_height()
+                if level == 1 and mean_col == 'time_avg':
+                    label = f'{height:.2f} ms'
+                elif mean_col == 'time_avg':
+                    label = f'{height:.2f} s'
+                else:
+                    label = f'{height:.2f}'
                 ax.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{height:.6f}', ha='center', va='bottom', fontsize=8)
+                        label, ha='center', va='bottom', fontsize=8)
 
             plt.tight_layout()
             plt.savefig(f'grafico_nivel_{level}_{mean_col}.png', dpi=300, bbox_inches='tight')

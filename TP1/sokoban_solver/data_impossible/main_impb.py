@@ -61,7 +61,7 @@ def main():
                 print(f"{key}: {value}")
 
     # Guardar resultados en CSV
-    with open('results.csv', 'a', newline='') as csvfile:
+    with open('impossible.csv', 'a', newline='') as csvfile:
         fieldnames = ["algorithm", "level", "heuristic", "execution_time", "moves", "nodes_expanded", "frontier_size", "depth"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow(result)
