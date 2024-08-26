@@ -16,42 +16,52 @@ def h3_heuristic(state):
     return player_to_box + box_to_goal
 
 def h4_heuristic(state):
-    player_to_box = min(manhattan_distance(state.player, box) for box in state.boxes)
-    box_to_goal = sum(min(manhattan_distance(box, target) for target in state.targets) for box in state.boxes)
-    
-    # Penalización por cajas en esquinas que no son objetivos
-    corner_penalty = sum(20 for box in state.boxes if is_corner(state, box) and box not in state.targets)
-    
-    # Penalización por cajas bloqueadas contra paredes
-    wall_penalty = sum(10 for box in state.boxes if is_blocked_by_wall(state, box))
-    
-    return player_to_box + box_to_goal + corner_penalty + wall_penalty
+    return (
+        distance_to_nearest_box(state) +
+        distance_from_box_to_goals(state) +
+        calculate_wall_penalty(state)
+    )
 
-def is_corner(state, pos):
-    x, y = pos
-    return ((x+1, y) in state.walls or (x-1, y) in state.walls) and \
-           ((x, y+1) in state.walls or (x, y-1) in state.walls)
+def distance_to_nearest_box(state):
+    min_distance = float('inf')
+    for box in state.boxes:
+        distance = manhattan_distance(state.player, box)
+        min_distance = min(min_distance, distance)
+    return min_distance if min_distance != float('inf') else 0
 
-def is_blocked_by_wall(state, pos):
-    x, y = pos
-    return ((x+1, y) in state.walls and (x, y+1) in state.walls) or \
-           ((x-1, y) in state.walls and (x, y+1) in state.walls) or \
-           ((x+1, y) in state.walls and (x, y-1) in state.walls) or \
-           ((x-1, y) in state.walls and (x, y-1) in state.walls)
-
-
-# Las heurísticas originales
-def simple_heuristic(state):
-    return sum(min(manhattan_distance(box, target) for target in state.targets) for box in state.boxes)
-
-def advanced_heuristic(state):
-    box_cost = sum(min(manhattan_distance(box, target) for target in state.targets) for box in state.boxes)
-    player_cost = min(manhattan_distance(state.player, box) for box in state.boxes)
-    return box_cost + player_cost
-
-def better_heuristic(state):
+def distance_from_box_to_goals(state):
     total_distance = 0
     for box in state.boxes:
-        min_distance = min(manhattan_distance(box, target) for target in state.targets)
-        total_distance += min_distance
+        min_distance = float('inf')
+        for target in state.targets:
+            distance = manhattan_distance(box, target)
+            min_distance = min(min_distance, distance)
+        total_distance += min_distance if min_distance != float('inf') else 0
     return total_distance
+
+def calculate_wall_penalty(state):
+    penalty = 0
+    for box in state.boxes:
+        adjacent_walls = 0
+        for direction in ['up', 'down', 'left', 'right']:
+            adjacent_pos = move_box_in_direction(state, box, direction)
+            if adjacent_pos and adjacent_pos in state.walls:
+                adjacent_walls += 1
+        if adjacent_walls > 0:
+            penalty += 20 * adjacent_walls  # Penaliza más por estar cerca de varias paredes
+    return penalty
+
+def move_box_in_direction(state, box, direction):
+    directions = {
+        'up': (0, -1),
+        'down': (0, 1),
+        'left': (-1, 0),
+        'right': (1, 0)
+    }
+    delta_x, delta_y = directions[direction]
+    new_box_pos = (box[0] + delta_x, box[1] + delta_y)
+    
+    if not (0 <= new_box_pos[0] < state.width and 0 <= new_box_pos[1] < state.height):
+        return None
+    
+    return new_box_pos

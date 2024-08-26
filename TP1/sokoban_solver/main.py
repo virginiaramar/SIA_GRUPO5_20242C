@@ -74,9 +74,9 @@ def main():
             else:
                 print(f"Paso {i}:")
                 print(state)
-        #visualizer = Visualizer(initial_state.width, initial_state.height)
-       # visualizer.set_delay(2.0)  # Establece un retraso de 2 segundos entre cada paso
-       # visualizer.visualize_solution(solution)
+        visualizer = Visualizer(initial_state.width, initial_state.height)
+        visualizer.set_delay(2.0)  # Establece un retraso de 2 segundos entre cada paso
+        visualizer.visualize_solution(solution)
     else:
         print("No se encontró solución.")
 

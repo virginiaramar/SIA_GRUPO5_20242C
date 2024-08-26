@@ -1,6 +1,5 @@
 import heapq
 import time
-from .heuristics import simple_heuristic, advanced_heuristic, better_heuristic
 from collections import deque
 from .game import State
 
@@ -51,7 +50,7 @@ def dfs(initial_state):
 
     return None, nodes_expanded, 0
 
-def astar(initial_state, heuristic=better_heuristic):
+def astar(initial_state, heuristic):
     frontier = [(0, initial_state)]  # heapq, initialized with the starting state
     cost_so_far = {initial_state: 0}  # Costs to reach each state
     visited = set()  # States that have already been visited
@@ -82,7 +81,7 @@ def astar(initial_state, heuristic=better_heuristic):
 
     return None, nodes_expanded, 0
 
-def greedy(initial_state, heuristic=simple_heuristic):
+def greedy(initial_state, heuristic):
     frontier = [(heuristic(initial_state), initial_state)]  # heapq, based on heuristic
     visited = set()
     nodes_expanded = 0
