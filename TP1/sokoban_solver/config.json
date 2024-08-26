@@ -1,5 +1,5 @@
 {
-    "level_file": "levels/level1.txt",
-    "algorithm": "greedy",
-    "heuristic": "h4_heuristic"
+  "level_file": "levels\\level3.txt",
+  "algorithm": "astar",
+  "heuristic": "h4_heuristic"
 }

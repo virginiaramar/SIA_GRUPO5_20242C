@@ -48,3 +48,10 @@ def advanced_heuristic(state):
     box_cost = sum(min(manhattan_distance(box, target) for target in state.targets) for box in state.boxes)
     player_cost = min(manhattan_distance(state.player, box) for box in state.boxes)
     return box_cost + player_cost
+
+def better_heuristic(state):
+    total_distance = 0
+    for box in state.boxes:
+        min_distance = min(manhattan_distance(box, target) for target in state.targets)
+        total_distance += min_distance
+    return total_distance

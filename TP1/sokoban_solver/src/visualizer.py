@@ -12,7 +12,7 @@ class Visualizer:
         self.height = height
         self.screen = pygame.display.set_mode((width * CELL_SIZE, height * CELL_SIZE))
         pygame.display.set_caption("Super Sokoban Bros.")
-        self.delay = 0.5  # Delay predeterminado de 0.5 segundos
+        self.delay = 0.1  # Delay predeterminado de 0.5 segundos
 
         # Obtener el directorio del script actual
         script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

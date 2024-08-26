@@ -6,6 +6,7 @@ class State:
         self.walls = set(walls)  # conjunto de tuplas (x, y)
         self.width = width
         self.height = height
+        self.parent = None  # Nuevo atributo para almacenar el estado padre
 
     def is_goal(self):
         return self.boxes == self.targets
@@ -38,7 +39,9 @@ class State:
                 return None
             new_boxes.remove(new_player)
             new_boxes.add(new_box_position)
-        return State(new_player, new_boxes, self.targets, self.walls, self.width, self.height)
+        new_state = State(new_player, new_boxes, self.targets, self.walls, self.width, self.height)
+        new_state.parent = self  # Establecer el estado actual como padre del nuevo estado
+        return new_state
 
     def get_successors(self):
         moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Abajo, Derecha, Arriba, Izquierda
