@@ -329,3 +329,5 @@ astar,levels\level3.txt,h4_heuristic,58.08600902557373,30,58480,22956,29
 astar,levels\level3.txt,h4_heuristic,49.274142026901245,30,58480,22956,29
 astar,levels\level3.txt,h4_heuristic,49.88381361961365,30,58480,22956,29
 astar,levels\level3.txt,h4_heuristic,48.406888246536255,30,58480,22956,29
+astar,levels\level2.txt,h4_heuristic,2.413696765899658,34,8088,216,33
+bfs,levels\level2.txt,N/A,0.5998129844665527,32,6552,354,31
