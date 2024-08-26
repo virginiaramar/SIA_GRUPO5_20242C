@@ -68,6 +68,6 @@ def load_board_from_file(filename):
 
 if __name__ == "__main__":
     # Cargar el tablero desde el archivo
-    board = load_board_from_file('BOARDS/LEVELS/impossible.txt')
+    board = load_board_from_file('BOARDS/LEVELS/2.txt')
     game = SokobanGame(board)
     game.run()

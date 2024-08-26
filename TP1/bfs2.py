@@ -33,7 +33,7 @@ class BFS:
         return state
 
 if __name__ == "__main__":
-    file_path = 'BOARDS/LEVELS/difficult.txt'  # Cambia esto a la ruta correcta de tu archivo
+    file_path = 'BOARDS/LEVELS/medium.txt'  # Cambia esto a la ruta correcta de tu archivo
     initial_state = load_board_from_file(file_path)
     bfs = BFS(initial_state)
     solution, num_steps = bfs.search()

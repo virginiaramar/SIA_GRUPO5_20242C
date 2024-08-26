@@ -1,5 +1,5 @@
 import heapq
-from heuristics import H5  # Asegúrate de que esta importación esté correcta
+from heuristics import H4  # Asegúrate de que esta importación esté correcta
 from STATE import load_board_from_file
 
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     initial_state = load_board_from_file(file_path)
 
     # Utiliza la heurística H1
-    heuristics_class = H5
+    heuristics_class = H4
 
     astar = AStar(initial_state=initial_state, heuristics_class=heuristics_class)
     solution, num_steps = astar.search()
