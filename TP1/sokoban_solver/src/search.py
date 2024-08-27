@@ -108,55 +108,55 @@ def greedy(initial_state, heuristic):
             print(f"Greedy: Nodos explorados: {nodes_expanded}, Tamaño de la frontera: {len(frontier)}")
 
     return None, nodes_expanded, 0
+import time
 
-def iddfs(initial_state, max_depth=1000, time_limit=300, depth_step=10):
+def iddfs(initial_state, max_depth=100, time_limit=300):
     start_time = time.time()
     total_nodes_expanded = 0
-    visited = set()
-    limit_nodes = []
-    cur_max_depth = depth_step
-
-    while cur_max_depth <= max_depth:
+    
+    for depth_limit in range(1, max_depth + 1):
         if time.time() - start_time > time_limit:
-            print(f"Tiempo límite excedido en IDDFS después de explorar hasta profundidad {cur_max_depth}")
-            return None, total_nodes_expanded, len(limit_nodes)
-
-        print(f"IDDFS: Explorando profundidad {cur_max_depth}")
-        result, nodes_expanded = _dfs(initial_state, 0, cur_max_depth, visited, limit_nodes)
-        total_nodes_expanded += nodes_expanded
-
-        if result is not None:
-            return result, total_nodes_expanded, len(limit_nodes)
-        
-        if not limit_nodes:
-            print(f"IDDFS: No hay más nodos para explorar. Profundidad máxima alcanzada: {cur_max_depth}")
+            print(f"Tiempo límite excedido en IDDFS después de explorar hasta profundidad {depth_limit - 1}")
             return None, total_nodes_expanded, 0
-
-        cur_max_depth += depth_step
-        visited.clear()
-        limit_nodes.clear()
-
-    print(f"IDDFS: Profundidad máxima {max_depth} alcanzada sin encontrar solución")
-    return None, total_nodes_expanded, len(limit_nodes)
-
-def _dfs(state, depth, max_depth, visited, limit_nodes):
-    if state.is_goal():
-        return [state], 1
-
-    if depth >= max_depth:
-        limit_nodes.append(state)
-        return None, 1
-
-    state_hash = hash(state)
-    if state_hash in visited:
-        return None, 1
-    visited.add(state_hash)
-
-    nodes_expanded = 1
-    for next_state in state.get_successors():
-        result, sub_nodes = _dfs(next_state, depth + 1, max_depth, visited, limit_nodes)
-        nodes_expanded += sub_nodes
+        
+        result, nodes_expanded = depth_limited_search(initial_state, depth_limit)
+        total_nodes_expanded += nodes_expanded
+        
         if result is not None:
-            return [state] + result, nodes_expanded
+            print(f"Solución encontrada a profundidad {depth_limit}")
+            return reconstruct_path(result), total_nodes_expanded, 0
+        
+        if time.time() - start_time > time_limit:
+            print(f"Tiempo límite excedido en IDDFS después de explorar hasta profundidad {depth_limit}")
+            return None, total_nodes_expanded, 0
+    
+    print(f"No se encontró solución dentro de la profundidad máxima {max_depth}")
+    return None, total_nodes_expanded, 0
 
+def depth_limited_search(initial_state, depth_limit):
+    stack = [(initial_state, 0)]  # (estado, profundidad)
+    visited = set()
+    nodes_expanded = 0
+    
+    while stack:
+        state, depth = stack.pop()
+        
+        if depth > depth_limit:
+            continue
+        
+        if state.is_goal():
+            return state, nodes_expanded
+        
+        state_hash = hash(state)
+        if state_hash in visited:
+            continue
+        
+        visited.add(state_hash)
+        nodes_expanded += 1
+        
+        if depth < depth_limit:
+            for successor in state.get_successors():
+                if hash(successor) not in visited:
+                    stack.append((successor, depth + 1))
+    
     return None, nodes_expanded

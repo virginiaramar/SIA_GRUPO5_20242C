@@ -34,8 +34,10 @@ def run_main(level, algorithm, heuristic=None):
     subprocess.run(['python', main_py_path], cwd=SCRIPT_DIR, check=True)
 
 def main():
-    levels = ['level1', 'level2', 'level3','impossible']
-    algorithms = ['bfs', 'dfs', 'iddfs', 'greedy', 'astar']
+    levels = ['level1', 'level2', 'level3']
+   # algorithms = ['bfs', 'dfs', 'iddfs', 'greedy', 'astar']
+    algorithms = ['iddfs']
+
     heuristics = ['h1_heuristic', 'h2_heuristic', 'h3_heuristic', 'h4_heuristic']
     iterations = 10
 

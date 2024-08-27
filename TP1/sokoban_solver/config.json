@@ -1,5 +1,4 @@
 {
   "level_file": "levels\\level3.txt",
-  "algorithm": "astar",
-  "heuristic": "h4_heuristic"
+  "algorithm": "iddfs"
 }

@@ -53,7 +53,7 @@ def create_refined_graphs(df):
              'greedy_h1_heuristic', 'greedy_h2_heuristic', 'greedy_h3_heuristic', 'greedy_h4_heuristic']
 
     method_labels = {
-        'bfs': 'BFS', 'dfs': 'DFS', 'iddfs': 'IDDFS',
+        'bfs': 'BFS', 'dfs': 'DFS', 
         'astar_h1_heuristic': 'A* H1', 'astar_h2_heuristic': 'A* H2',
         'astar_h3_heuristic': 'A* H3', 'astar_h4_heuristic': 'A* H4',
         'greedy_h1_heuristic': 'Greedy H1', 'greedy_h2_heuristic': 'Greedy H2',

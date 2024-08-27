@@ -19,7 +19,6 @@ Hemos implementado tanto métodos de búsqueda informados como desinformados:
 - **Métodos desinformados**:  
   - BFS (Breadth-First Search)  
   - DFS (Depth-First Search)  
-  - IDDFS (Iterative Deepening Depth-First Search) con una profundidad máxima de 1000 y un límite de tiempo de 300 segundos.  
 
 - **Métodos informados**:  
   - Greedy  
