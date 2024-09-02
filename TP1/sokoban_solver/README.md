@@ -119,3 +119,22 @@ De esta manera se generarán 12 imágenes representativas del análisis, teniend
    - `Cantidad de nodos frontera por nivel para cada método de búsqueda`
    - `Tiempo de resolución de de nodos explorados/expandidos por nivel para cada método de búsqueda`
 
+
+## Correcciones y notas
+
+
+Nota: 6 (seis)
+
+**Correcciones**
+Se debieron haber elegido otras heurísticas. No fue una selección acorde a lo que presentamos.
+Se debió haber hecho un análisis más detallado de los cambios.
+El hecho de elegir el algoritmo que menos tiempo tarde en darse cuenta que no había una solución, sirve, pero debe ser justificado con que según el HARDWARE que tengamos puede ser que el cálculo de los métodos que tienen heurísticas tarde más, sugirieron mostrar más comparaciones.
+
+
+
+Preguntas:
+- Bajo que condiciones BFS es ÓPTIMO 
+- ¿Qué se entiende con inminencia de heurísticas?
+- ¿Por qué es importante considerar los estados repetidos?
+- ¿Qué ventajas tiene BFS sobre DFS?
+  
