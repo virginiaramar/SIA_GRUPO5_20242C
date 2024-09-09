@@ -1,0 +1,10 @@
+{
+  "population_size": 100,
+  "mutation_rate": 0.01,
+  "crossover_method": "two-point",
+  "selection_method": "elite",
+  "replacement_method": "roulette",
+  "max_generations": 100,
+  "stopping_criteria": "max_generations",
+  "char_class": "Warrior"
+}
