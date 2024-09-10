@@ -55,7 +55,7 @@ class GeneticAlgorithm:
             old_population.remove(parent1)
             old_population.remove(parent2)
 
-            offspring1, offspring2 = uniform_crossover(parent1, parent2)
+            offspring1, offspring2 = self.crossover(parent1, parent2)
 
             offspring1 = self.gen_mutation(offspring1)
             offspring2 = self.gen_mutation(offspring2)
@@ -93,6 +93,13 @@ class GeneticAlgorithm:
         else:
             return None
 
+    def crossover(self, parent1, parent2):
+        if self.crossover_method == "one-point":
+            return one_point_crossover(parent1, parent2)
+        elif self.crossover_method == "two-point":
+            return two_point_crossover(parent1, parent2)
+        elif self.crossover_method == "uniform":
+            return uniform_crossover(parent1, parent2)
     def elite_selection(self):
         self.population.sort(key=lambda individual: individual.performance_score, reverse=True)
 

@@ -3,13 +3,6 @@ import math
 import numpy.random as npr
 
 
-def elite_selection(self):
-    self.population.sort(key=lambda individual: individual.fitness, reverse=True)
-
-    num_elites = int(self.elitism_rate * self.population_size)
-
-    return self.population[:num_elites]
-
 
 def boltzmann_selection(population, temperature):
     fitness_scores = [character.performance_score for character in population]
