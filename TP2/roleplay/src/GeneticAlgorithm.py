@@ -1,14 +1,12 @@
 import json
-import random
-import numpy.random as npr
 
-from roleplay.src.Character import Character
 from roleplay.src.CrossoverStrategy import *
 from roleplay.src.Eve import Eve
+from roleplay.src.SelectionStrategy import *
 
 
 class GeneticAlgorithm:
-    def __init__(self, config_file: str):
+    def __init__(self):
         with open('config.json', 'r') as f:
             self.config = json.load(f)
 
@@ -16,9 +14,13 @@ class GeneticAlgorithm:
         self.mutation_rate = self.config.get('mutation_rate')
         self.crossover_method = self.config.get('crossover_method')
         self.selection_method = self.config.get('selection_method')
+        self.generational_gap = self.config.get('generational_gap')
         self.replacement_method = self.config.get('replacement_method')
         self.max_generations = self.config.get('max_generations')
         self.stopping_criteria = self.config.get('stopping_criteria')
+        self.optimal_fitness = self.config.get('optimal_fitness')
+        self.stagnant_population_fraction_limit = self.config.get('stagnant_population_fraction_limit')
+        self.stagnant_generations_limit = self.config.get('stagnant_generations_limit')
         self.char_class = self.config.get('char_class')
 
         self.population = self.initialize_population(self.char_class)
@@ -39,14 +41,16 @@ class GeneticAlgorithm:
 
         return population
 
-    def generate_offspring(self):
-        new_population = self.selection()
+    def generate_offspring(self, generation_number):
+        new_population = self.selection(generation_number)
         old_population = self.population
         while len(new_population) < self.population_size:
-            parent1 = self.roulette_selection(old_population)
-            parent2 = self.roulette_selection(old_population)
+            parent1 = self.replacement(old_population, generation_number)
+            parent2 = self.replacement(old_population, generation_number)
+
+            # in case same parents were selected
             while parent2 == parent1:
-                parent2 = self.roulette_selection(old_population)
+                parent2 = self.replacement(old_population, generation_number)
 
             old_population.remove(parent1)
             old_population.remove(parent2)
@@ -61,37 +65,38 @@ class GeneticAlgorithm:
 
         self.population = new_population[:self.population_size]
 
-    def selection(self):
+    def selection(self, generation_number):
         new_population = []
         if self.selection_method == "elite":
-            new_population = self.elite_selection(0.8)
+            new_population = self.elite_selection()
+        if self.selection_method == "ranking":
+            while len(new_population) < self.generational_gap * self.population_size:
+                new_population.append(ranking_selection(self.population))
+        if self.selection_method == "roulette":
+            while len(new_population) < self.generational_gap * self.population_size:
+                new_population.append(roulette_selection(self.population))
+        if self.selection_method == "boltzmann":
+            while len(new_population) < self.generational_gap * self.population_size:
+                new_population.append(boltzmann_selection(self.population, 100 / (1 + 0.1 * generation_number)))
         return new_population
 
-    def select_parents(self, population):
-        parent1, parent2 = None, None
+    def replacement(self, population, generation_number):
+        if self.selection_method == "ranking":
+            return ranking_selection(population)
         if self.replacement_method == "roulette":
-            parent1, parent2 = self.roulette(population), self.roulette(population)
-        return parent1, parent2
+            return roulette_selection(population)
+        elif self.replacement_method == "boltzmann":
+            initial_temperature = 100
+            cooling_rate = 0.1
+            temperature = initial_temperature / (1 + cooling_rate * generation_number)
+            return boltzmann_selection(population, temperature)
+        else:
+            return None
 
-    def roulette_selection(self, population):
-        max = sum([c.performance_score for c in population])
-        selection_probs = [c.performance_score / max for c in population]
-        return population[npr.choice(len(population), p=selection_probs)]
-
-    def roulette(self, population):
-        total_fitness = sum(individual.performance_score for individual in population)
-        pick = random.uniform(0, total_fitness)
-
-        current = 0
-        for individual in population:
-            current += individual.performance_score
-            if current > pick:
-                return individual
-
-    def elite_selection(self, selection_rate):
+    def elite_selection(self):
         self.population.sort(key=lambda individual: individual.performance_score, reverse=True)
 
-        num_elites = int(selection_rate * self.population_size)
+        num_elites = int(self.generational_gap * self.population_size)
 
         return self.population[:num_elites]
 
@@ -159,26 +164,114 @@ class GeneticAlgorithm:
 
         return new_character
 
+    def run_algorithm(self):
+        if self.stopping_criteria == "max_generations":
+            max_fitness = 0
+            best_character = None
+            generation_number = 0
+            for _ in range(self.max_generations):
+                fitness_values = []
+                self.generate_offspring(generation_number)
+                generation_number += 1
+                for character in self.population:
+                    fitness_values.append(character.performance_score)
+
+                current_max = max(fitness_values)
+                if current_max > max_fitness:
+                    max_fitness = current_max
+                    best_character = next(c for c in self.population if c.performance_score == current_max)
+            print(f"Max Fitness: {max_fitness}")
+            print(f"Best Character: {best_character}")
+        elif self.stopping_criteria == "acceptable_solution":
+            max_fitness = 0
+            best_character = None
+            generation_number = 0
+
+            while (max_fitness < self.optimal_fitness):
+                fitness_values = []
+                self.generate_offspring(generation_number)
+                generation_number += 1
+
+                for character in self.population:
+                    fitness_values.append(character.performance_score)
+
+                current_max = max(fitness_values)
+                if current_max > max_fitness:
+                    max_fitness = current_max
+                    best_character = next(c for c in self.population if c.performance_score == current_max)
+            print(f"Max Fitness: {max_fitness}")
+            print(f"Best Character: {best_character}")
+        elif self.stopping_criteria == "stagnant_content":
+            max_fitness = 0
+            best_character = None
+            stagnant_generations = 0
+            generation_number = 0
+
+            while 1:
+                fitness_values = []
+                self.generate_offspring(generation_number)
+                generation_number += 1
+
+                for character in self.population:
+                    fitness_values.append(character.performance_score)
+
+                current_max = max(fitness_values)
+                if current_max > max_fitness:
+                    max_fitness = current_max
+                    best_character = next(c for c in self.population if c.performance_score == current_max)
+                    stagnant_generations = 0
+                else:
+                    stagnant_generations += 1
+
+                if stagnant_generations >= self.stagnant_generations_limit:
+                    print("Stopping due to stagnant best fitness.")
+                    break
+
+            print(f"Max Fitness: {max_fitness}")
+            print(f"Best Character: {best_character}")
+
+        elif self.stopping_criteria == "stagnant_structure":
+            max_fitness = 0
+            best_character = None
+            unchanged_generations = 0
+            generation_number = 0
+            previous_population_state = [char.performance_score for char in self.population]
+
+            while 1:
+                self.generate_offspring(generation_number)
+                generation_number += 1
+                current_population_state = [char.performance_score for char in self.population]
+
+                unchanged_individuals = sum(1 for i in range(len(current_population_state))
+                                            if current_population_state[i] == previous_population_state[i])
+
+                unchanged_fraction = unchanged_individuals / len(self.population)
+
+                if unchanged_fraction >= self.stagnant_population_fraction_limit:
+                    unchanged_generations += 1
+                else:
+                    unchanged_generations = 0
+
+                previous_population_state = current_population_state
+
+                if unchanged_generations >= self.stagnant_generations_limit:
+                    print(f"Stopping after {generation_number} generations due to stagnant population.")
+                    break
+
+                fitness_values = [character.performance_score for character in self.population]
+                current_max = max(fitness_values)
+
+                if current_max > max_fitness:
+                    max_fitness = current_max
+                    best_character = next(c for c in self.population if c.performance_score == current_max)
+
+            print(f"Max Fitness: {max_fitness}")
+            print(f"Best Character: {best_character}")
+
 
 def main():
-    ga = GeneticAlgorithm(config_file='config.json')
-    max_fitness = 0
-    best_character = None  # Variable to keep track of the character with the maximum fitness
-
-    for _ in range(ga.max_generations):
-        fitness_values = []
-        ga.generate_offspring()
-
-        for character in ga.population:
-            fitness_values.append(character.performance_score)
-
-        current_max = max(fitness_values)
-        if current_max > max_fitness:
-            max_fitness = current_max
-            # Find the character with the maximum fitness
-            best_character = next(c for c in ga.population if c.performance_score == current_max)
-    print(f"Max Fitness: {max_fitness}")
-    print(f"Best Character: {best_character}")
+    ga = GeneticAlgorithm()
+    ga.run_algorithm()
 
 
 if __name__ == "__main__":

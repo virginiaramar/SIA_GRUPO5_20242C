@@ -31,27 +31,21 @@ class Character:
         attributes = ['strength', 'dexterity', 'intelligence', 'vigor', 'constitution']
         num_attributes = len(attributes)
 
-        # Generate random proportions using Dirichlet distribution
         proportions = [random.uniform(0, 1) for _ in range(num_attributes)]
         total = sum(proportions)
 
-        # Normalize proportions to sum to 1
         proportions = [p / total for p in proportions]
 
-        # Distribute points according to the generated proportions
         for i, attr in enumerate(attributes):
             points = int(self.total_points * proportions[i])
             setattr(self, attr, points)
 
-        # Ensure the total points sum up to the desired amount
         current_total = sum(getattr(self, attr) for attr in attributes)
         while current_total < self.total_points:
-            # Randomly add the remaining points to any attribute
             attr = random.choice(attributes)
             setattr(self, attr, getattr(self, attr) + 1)
             current_total += 1
         while current_total > self.total_points:
-            # Randomly subtract the extra points from any attribute
             attr = random.choice(attributes)
             if getattr(self, attr) > 0:
                 setattr(self, attr, getattr(self, attr) - 1)

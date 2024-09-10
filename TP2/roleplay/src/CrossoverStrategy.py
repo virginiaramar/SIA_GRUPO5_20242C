@@ -116,7 +116,6 @@ def one_point_crossover(parent1, parent2):
 
 
 def assign_attributes(offspring, chromosome):
-    """Helper function to assign attributes from chromosome to offspring."""
     offspring.strength = chromosome[0]
     offspring.dexterity = chromosome[1]
     offspring.intelligence = chromosome[2]
@@ -126,23 +125,21 @@ def assign_attributes(offspring, chromosome):
 
 
 def adjust_attributes(offspring, current_total):
-    """Adjust the offspring's attributes to match the allowed total_points."""
     attributes = ['strength', 'dexterity', 'intelligence', 'vigor', 'constitution']
     target_total = offspring.total_points
     diff = target_total - current_total
 
-    # Increase or decrease attributes to reach the target total
     while diff != 0:
         attr = random.choice(attributes)
         current_value = getattr(offspring, attr)
 
-        if diff > 0:  # Increase attributes
-            if current_value < 100:  # Assuming 100 is the upper bound for any attribute
+        if diff > 0:
+            if current_value < 100:
                 increment = min(diff, 100 - current_value)
                 setattr(offspring, attr, current_value + increment)
                 diff -= increment
-        else:  # Decrease attributes
-            if current_value > 0:  # Assuming 0 is the lower bound for any attribute
+        else:
+            if current_value > 0:
                 decrement = min(-diff, current_value)
                 setattr(offspring, attr, current_value - decrement)
                 diff += decrement
