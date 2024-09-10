@@ -276,10 +276,3 @@ class GeneticAlgorithm:
             print(f"Best Character: {best_character}")
 
 
-def main():
-    ga = GeneticAlgorithm()
-    ga.run_algorithm()
-
-
-if __name__ == "__main__":
-    main()
