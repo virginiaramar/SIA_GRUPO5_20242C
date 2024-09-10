@@ -1,14 +1,14 @@
 {
   "population_size": 100,
-  "mutation_rate": 0.1,
+  "mutation_rate": 0.01,
   "crossover_method": "uniform",
   "selection_method": "elite",
   "generational_gap": 0.1,
-  "replacement_method": "boltzmann",
+  "replacement_method": "elite",
   "max_generations": 1000,
   "stopping_criteria": "stagnant_structure",
   "optimal_fitness": 60,
   "stagnant_population_fraction_limit": 0.1,
   "stagnant_generations_limit": 100,
-  "char_class": "Warrior"
+  "char_class": "Guardian"
 }

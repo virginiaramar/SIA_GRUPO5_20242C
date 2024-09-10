@@ -44,15 +44,13 @@ class GeneticAlgorithm:
     def generate_offspring(self, generation_number):
         new_population = self.selection(generation_number)
         old_population = self.population
+
         while len(new_population) < self.population_size:
+
             parent1 = self.replacement(old_population, generation_number)
-            parent2 = self.replacement(old_population, generation_number)
-
-            # in case same parents were selected
-            while parent2 == parent1:
-                parent2 = self.replacement(old_population, generation_number)
-
             old_population.remove(parent1)
+
+            parent2 = self.replacement(old_population, generation_number)
             old_population.remove(parent2)
 
             offspring1, offspring2 = self.crossover(parent1, parent2)
@@ -81,7 +79,9 @@ class GeneticAlgorithm:
         return new_population
 
     def replacement(self, population, generation_number):
-        if self.selection_method == "ranking":
+        if self.replacement_method == "elite":
+            return elite_selection(population)
+        if self.replacement_method == "ranking":
             return ranking_selection(population)
         if self.replacement_method == "roulette":
             return roulette_selection(population)
@@ -157,6 +157,61 @@ class GeneticAlgorithm:
         if random.random() < self.mutation_rate:
             mutation_step = random.uniform(-0.1, 0.1)
             new_character.height = max(1.3, min(2.0, character.height + mutation_step))
+        else:
+            new_character.height = character.height
+
+        new_character_total = sum(
+            [new_character.strength, new_character.dexterity, new_character.intelligence, new_character.vigor,
+             new_character.constitution])
+        adjust_attributes(new_character, new_character_total)
+
+        new_character.calculate_attack()
+        new_character.calculate_defense()
+        new_character.performance_score = Eve().compute_performance_score(new_character)
+
+        return new_character
+
+    def gen_mutation_random_number(self, character):
+        attributes = ['strength', 'dexterity', 'intelligence', 'vigor', 'constitution']
+        new_character = Character(character.character_class, character.total_points)
+
+        for attr in attributes:
+            setattr(new_character, attr, getattr(character, attr))
+        new_character.height = character.height
+
+        if random.random() < self.mutation_rate:
+            gene_to_mutate = random.choice(attributes + ['height'])
+
+            if gene_to_mutate == 'height':
+                new_character.height = random.uniform(1.3, 2.0)
+            else:
+                new_value = random.randint(0, 100)
+                setattr(new_character, gene_to_mutate, new_value)
+
+        new_character_total = sum(
+            [new_character.strength, new_character.dexterity, new_character.intelligence, new_character.vigor,
+             new_character.constitution])
+        adjust_attributes(new_character, new_character_total)
+
+        new_character.calculate_attack()
+        new_character.calculate_defense()
+        new_character.performance_score = Eve().compute_performance_score(new_character)
+
+        return new_character
+
+    def multigen_mutation_random_number(self, character):
+        attributes = ['strength', 'dexterity', 'intelligence', 'vigor', 'constitution']
+        new_character = Character(character.character_class, character.total_points)
+
+        for attr in attributes:
+            if random.random() < self.mutation_rate:
+                new_value = random.randint(0, 100)
+                setattr(new_character, attr, new_value)
+            else:
+                setattr(new_character, attr, getattr(character, attr))
+
+        if random.random() < self.mutation_rate:
+            new_character.height = random.uniform(1.3, 2.0)
         else:
             new_character.height = character.height
 
@@ -276,3 +331,10 @@ class GeneticAlgorithm:
             print(f"Best Character: {best_character}")
 
 
+def main():
+    ga = GeneticAlgorithm()
+    ga.run_algorithm()
+
+
+if __name__ == "__main__":
+    main()

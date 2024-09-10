@@ -3,7 +3,6 @@ import math
 import numpy.random as npr
 
 
-
 def boltzmann_selection(population, temperature):
     fitness_scores = [character.performance_score for character in population]
     avg_fitness = sum(fitness_scores) / len(fitness_scores)
@@ -27,3 +26,8 @@ def ranking_selection(population):
     selection_probs = [rank / total_rank for rank in ranks]
 
     return population[npr.choice(len(population), p=selection_probs)]
+
+
+def elite_selection(population):
+    best_individual = max(population, key=lambda individual: individual.performance_score)
+    return best_individual

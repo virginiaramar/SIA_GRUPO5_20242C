@@ -128,7 +128,6 @@ def adjust_attributes(offspring, current_total):
     attributes = ['strength', 'dexterity', 'intelligence', 'vigor', 'constitution']
     target_total = offspring.total_points
     diff = target_total - current_total
-
     while diff != 0:
         attr = random.choice(attributes)
         current_value = getattr(offspring, attr)
@@ -143,3 +142,30 @@ def adjust_attributes(offspring, current_total):
                 decrement = min(-diff, current_value)
                 setattr(offspring, attr, current_value - decrement)
                 diff += decrement
+
+# Even distribution that doesn't work with the structur stopping criteria because the population doesn't converge
+# def adjust_attributes(offspring, current_total):
+#     attributes = ['strength', 'dexterity', 'intelligence', 'vigor', 'constitution']
+#     target_total = offspring.total_points
+#     diff = target_total - current_total
+#     num_attributes = len(attributes)
+#
+#     while diff != 0:
+#         adjustment_per_attr = diff // num_attributes
+#
+#         for attr in attributes:
+#             current_value = getattr(offspring, attr)
+#
+#             if diff > 0:
+#                 if current_value < 100:
+#                     increment = min(adjustment_per_attr, 100 - current_value)
+#                     setattr(offspring, attr, current_value + increment)
+#                     diff -= increment
+#             else:
+#                 if current_value > 0:
+#                     decrement = min(-adjustment_per_attr, current_value)
+#                     setattr(offspring, attr, current_value - decrement)
+#                     diff += decrement
+#
+#             if diff == 0:
+#                 break
