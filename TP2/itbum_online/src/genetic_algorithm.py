@@ -5,7 +5,6 @@ from src.character import Character
 from src.eve import EVE
 import time
 
-
 class GeneticAlgorithm:
     def __init__(self, config: dict):
         self.config = config
@@ -18,26 +17,27 @@ class GeneticAlgorithm:
         self.parent_selection = self.get_selection_method(config['selection']['parents'])
         self.replacement_selection = self.get_selection_method(config['selection']['replacement'])
         self.stop_criteria = config['stop_criteria']
-        self.fixed_class = config.get('character_class')
-        self.total_points = config.get('total_points')
+        self.fixed_class = config.get('character_class') if config.get('character_class') is not None else random.randint(0, 3)
+        self.total_points = config.get('total_points') if  config.get('total_points') is not None else random.randint(100, 200)
         self.generation = 0
         self.generation_history = []
         self.time_limit = config['time_limit']
         self.start_time = time.time()
-
 
     def initialize_population(self) -> List[Character]:
         population = []
         for _ in range(self.population_size):
             items = {attr: random.uniform(0, 100) for attr in ["strength", "agility", "expertise", "endurance", "health"]}
             height = random.uniform(1.3, 2.0)
-            class_index = self.fixed_class if self.fixed_class is not None else random.randint(0, 3)
-            population.append(Character(items, height, class_index, self.total_points))
+            class_index = self.fixed_class
+            character = Character(items, height, class_index, self.total_points)
+           # print(f"Initialized character with class: {character.get_class_name()}")  # Debugging
+            population.append(character)
         return population
-
+    
     def get_selection_method(self, config: dict) -> Callable:
         methods = {
-            'tournament': self.tournament_selection,
+            'tournament': lambda pop, k: self.tournament_selection(pop, k, probabilistic=True),
             'roulette': self.roulette_selection,
             'universal': self.universal_selection,
             'boltzmann': self.boltzmann_selection,
@@ -55,18 +55,33 @@ class GeneticAlgorithm:
         
         return combined_method
 
-    def tournament_selection(self, population: List[Character], k: int) -> List[Character]:
+    def tournament_selection(self, population: List[Character], k: int, tournament_size: int = 5, probabilistic: bool = False) -> List[Character]:
         selected = []
         for _ in range(k):
-            tournament = random.sample(population, 5)
-            selected.append(max(tournament, key=lambda x: x.get_performance()))
+            tournament = random.sample(population, tournament_size)
+            if probabilistic:
+                threshold = 0.75  # Puedes ajustar este valor
+                if random.random() < threshold:
+                    selected.append(max(tournament, key=lambda x: x.get_performance()))
+                else:
+                    selected.append(min(tournament, key=lambda x: x.get_performance()))
+            else:
+                selected.append(max(tournament, key=lambda x: x.get_performance()))
         return selected
 
     def roulette_selection(self, population: List[Character], k: int) -> List[Character]:
         fitnesses = [c.get_performance() for c in population]
         total_fitness = sum(fitnesses)
         probabilities = [f/total_fitness for f in fitnesses]
-        return random.choices(population, weights=probabilities, k=k)
+        selected = []
+        for _ in range(k):
+            r = random.random()
+            for i, prob in enumerate(probabilities):
+                if r <= prob:
+                    selected.append(population[i])
+                    break
+                r -= prob
+        return selected
 
     def universal_selection(self, population: List[Character], k: int) -> List[Character]:
         fitnesses = [c.get_performance() for c in population]
@@ -77,24 +92,37 @@ class GeneticAlgorithm:
 
     @staticmethod
     def universal_selection_index(probabilities: List[float], r: float) -> int:
-        c = probabilities[0]
-        i = 0
-        while c < r:
-            i += 1
-            c += probabilities[i]
-        return i
+        c = 0
+        for i, prob in enumerate(probabilities):
+            c += prob
+            if c > r:
+                return i
+        return len(probabilities) - 1
 
     def boltzmann_selection(self, population: List[Character], k: int) -> List[Character]:
-        T = max(0.5, 1 - self.generation / self.stop_criteria['max_generations'])
+        T = self.boltzmann_temperature()
         exp_values = [math.exp(c.get_performance() / T) for c in population]
         total = sum(exp_values)
         probabilities = [e/total for e in exp_values]
         return random.choices(population, weights=probabilities, k=k)
 
+    def boltzmann_temperature(self) -> float:
+        Tmin = 0.5
+        Tmax = 2.0
+        k = 0.1
+        return Tmax - (Tmax - Tmin) * (1 - math.exp(-k * self.generation))
+
     def ranking_selection(self, population: List[Character], k: int) -> List[Character]:
         sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
-        ranks = list(range(1, len(population) + 1))
-        return random.choices(sorted_population, weights=ranks, k=k)
+        N = len(population)
+        ranks = [self.ranking_function(i, N) for i in range(1, N+1)]
+        total = sum(ranks)
+        probabilities = [r/total for r in ranks]
+        return random.choices(sorted_population, weights=probabilities, k=k)
+
+    @staticmethod
+    def ranking_function(i: int, N: int) -> float:
+        return 2 - 2 * (i - 1) / (N - 1)
 
     def elite_selection(self, population: List[Character], k: int) -> List[Character]:
         return sorted(population, key=lambda x: x.get_performance(), reverse=True)[:k]

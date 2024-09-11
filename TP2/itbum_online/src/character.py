@@ -3,11 +3,11 @@ from src.eve import EVE
 
 class Character:
     def __init__(self, items: dict[str, float], height: float, class_index: int = None, total_points: int = None):
-        self.total_points = total_points if total_points is not None else random.randint(100, 200)
+        self.total_points = total_points 
         self.items = self._normalize_items(items, self.total_points)
         self.height = height
-        self.class_index = class_index if class_index is not None else random.randint(0, 3)
-
+        self.class_index = class_index 
+        
     @staticmethod
     def _normalize_items(items: dict[str, float], total_points: int) -> dict[str, float]:
         total = sum(items.values())
