@@ -1,0 +1,37 @@
+{
+  "genetic_algorithm": {
+    "population_size": 100,
+    "generations": 50,
+    "crossover": {
+      "type": "one_point",
+      "rate": 0.8
+    },
+    "mutation": {
+      "type": "gen",
+      "uniform": true,
+      "rate": 0.01
+    },
+    "selection": {
+      "parents": {
+        "method1": "tournament",
+        "method2": "roulette",
+        "method1_proportion": 0.7
+      },
+      "replacement": {
+        "method1": "elite",
+        "method2": "ranking",
+        "method1_proportion": 0.2
+      }
+    },
+    "replacement_method": "traditional",
+    "stop_criteria": {
+      "max_generations": 100,
+      "structure": 0.98,
+      "content": 0.98,
+      "optimal_fitness": 0.95
+    },
+    "character_class": null,
+    "total_points": 180
+  },
+  "time_limit": 120
+}
