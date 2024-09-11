@@ -141,9 +141,10 @@ Para `parents` y `replacement`:
       "optimal_fitness": 0.95
     },
     "character_class": null,
-    "total_points": null
-  },
-  "time_limit": 120
+    "total_points": null,
+    "time_limit": 120
+  }
+
 }
 ```
 
@@ -153,19 +154,27 @@ Este ejemplo configura un algoritmo genético con una población de 100 individu
 
 Para ejecutar el programa:
 
-1. Asegúrate de tener Python 3.7 o superior instalado.
+1. Se debe asegurar de tener Python instalado.
 2. Navega hasta el directorio del proyecto en la terminal.
-3. Ejecuta el siguiente comando:
+3. Ejecuta uno de los siguientes comandos:
+
+### Ejecutar el programa sin mostrar el historial:
+
+El programa generará el mejor personaje posible dentro del límite de tiempo especificado en la configuración.
+
 
 ```
 python main.py
 ```
 
-El programa generará el mejor personaje posible dentro del límite de tiempo especificado en la configuración.
+### Ejecutar el programa mostrando el historial de generaciones y un gráfico:
+
+```
+python main.py --history
+```
 
 ## Posibles Extensiones y Mejoras
 
 - Implementación de interfaz gráfica para visualizar la evolución de los personajes.
 - Paralelización del algoritmo para mejorar el rendimiento.
 - Implementación de más operadores genéticos y métodos de selección.
-- Integración con un sistema de juego real para probar los personajes generados.

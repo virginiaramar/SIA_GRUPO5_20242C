@@ -1,13 +1,12 @@
 {
   "genetic_algorithm": {
     "population_size": 100,
-    "generations": 50,
     "crossover": {
       "type": "one_point",
       "rate": 0.8
     },
     "mutation": {
-      "type": "gen",
+      "type": "multigen",
       "uniform": true,
       "rate": 0.01
     },
@@ -25,13 +24,14 @@
     },
     "replacement_method": "traditional",
     "stop_criteria": {
-      "max_generations": 100,
-      "structure": 0.98,
-      "content": 0.98,
-      "optimal_fitness": 0.95
+      "max_generations": 20,
+      "structure": 0.01,
+      "content": 0.01,
+      "optimal_fitness": 100.0
     },
     "character_class": null,
-    "total_points": 180
-  },
-  "time_limit": 120
+    "total_points": null,
+    "time_limit": 10
+  }
+  
 }

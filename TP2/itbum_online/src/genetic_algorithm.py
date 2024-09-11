@@ -3,6 +3,8 @@ import math
 from typing import List, Tuple, Callable
 from src.character import Character
 from src.eve import EVE
+import time
+
 
 class GeneticAlgorithm:
     def __init__(self, config: dict):
@@ -19,6 +21,10 @@ class GeneticAlgorithm:
         self.fixed_class = config.get('character_class')
         self.total_points = config.get('total_points')
         self.generation = 0
+        self.generation_history = []
+        self.time_limit = config['time_limit']
+        self.start_time = time.time()
+
 
     def initialize_population(self) -> List[Character]:
         population = []
@@ -116,7 +122,8 @@ class GeneticAlgorithm:
             child1 = [alpha * g1 + (1 - alpha) * g2 for g1, g2 in zip(genotype1, genotype2)]
             child2 = [(1 - alpha) * g1 + alpha * g2 for g1, g2 in zip(genotype1, genotype2)]
 
-        return Character.from_genotype(child1, self.total_points), Character.from_genotype(child2, self.total_points)
+        return (Character.from_genotype(child1, parent1.class_index, self.total_points),
+                Character.from_genotype(child2, parent2.class_index, self.total_points))
 
     def mutate(self, character: Character) -> Character:
         genotype = character.get_genotype()
@@ -133,24 +140,24 @@ class GeneticAlgorithm:
         if not self.mutation_uniform:
             self.mutation_rate *= 0.99  # Decrease mutation rate over time
 
-        return Character.from_genotype(genotype, self.total_points)
-
+        return Character.from_genotype(genotype, character.class_index, self.total_points)
 
     def mutate_gene(self, gene: float, index: int) -> float:
         if index < 5:  # Items
             return max(0, gene + random.uniform(-10, 10))  
         elif index == 5:  # Height
             return max(1.3, min(2.0, gene + random.uniform(-0.1, 0.1)))
-        else:  # Class
-            return float(random.randint(0, 3))
-
+        else:  # No mutation for class
+            return gene
 
     def evolve(self) -> Character:
         population = self.initialize_population()
-        best_fitness = 0
+        best_fitness = float('-inf')
+        self.generation_history = []
+        self.generation = 0
         generations_no_improve = 0
 
-        while not self.should_stop(population, best_fitness):
+        while self.generation < self.stop_criteria['max_generations']:
             # Selección de padres
             parents = self.parent_selection(population, self.population_size)
             
@@ -175,6 +182,16 @@ class GeneticAlgorithm:
                     population = offspring + self.replacement_selection(population, remaining)
             
             current_best = max(population, key=lambda x: x.get_performance())
+            avg_fitness = sum(c.get_performance() for c in population) / len(population)
+            
+            self.generation_history.append({
+                    'generation': self.generation,
+                    'best_fitness': current_best.get_performance(),
+                    'average_fitness': avg_fitness,
+                })
+            
+            print(f"Generation {self.generation}: Best Fitness = {current_best.get_performance():.4f}, Avg Fitness = {avg_fitness:.4f}")
+            
             if current_best.get_performance() > best_fitness:
                 best_fitness = current_best.get_performance()
                 generations_no_improve = 0
@@ -183,12 +200,23 @@ class GeneticAlgorithm:
 
             self.generation += 1
 
+            # Verificar otros criterios de parada
+            elapsed_time = time.time() - self.start_time
+            if elapsed_time >= self.time_limit:
+                print(f"Tiempo límite alcanzado después de {self.generation} generaciones.")
+                break
+            
+            if self.should_stop(population, best_fitness):
+                break
+
+        print(f"Evolution completed after {self.generation} generations.")
+        print(f"Total generations recorded: {len(self.generation_history)}")
         return max(population, key=lambda x: x.get_performance())
 
     def should_stop(self, population: List[Character], best_fitness: float) -> bool:
         # Criterio 1: Máxima cantidad de generaciones
         if self.generation >= self.stop_criteria['max_generations']:
-            print("Stopping: Maximum number of generations reached.")
+            print(f"Stopping: Maximum number of generations ({self.stop_criteria['max_generations']}) reached.")
             return True
 
         # Criterio 2: Estructura (convergencia de la población)
@@ -196,17 +224,20 @@ class GeneticAlgorithm:
         avg_fitness = sum(fitnesses) / len(fitnesses)
         max_fitness = max(fitnesses)
         if (max_fitness - avg_fitness) / avg_fitness < self.stop_criteria['structure']:
-            print("Stopping: Population structure converged.")
+            print(f"Stopping: Population structure converged. Difference: {(max_fitness - avg_fitness) / avg_fitness:.4f}")
             return True
 
         # Criterio 3: Contenido (estancamiento del mejor fitness)
         if (best_fitness - avg_fitness) / avg_fitness < self.stop_criteria['content']:
-            print("Stopping: Best fitness stagnated.")
+            print(f"Stopping: Best fitness stagnated. Difference: {(best_fitness - avg_fitness) / avg_fitness:.4f}")
             return True
 
         # Criterio 4: Entorno a un óptimo
         if best_fitness >= self.stop_criteria['optimal_fitness']:
-            print(f"Stopping: Optimal fitness reached. Best fitness: {best_fitness}")
+            print(f"Stopping: Optimal fitness reached. Best fitness: {best_fitness:.4f}")
             return True
 
         return False
+        
+    def get_generation_history(self):
+        return self.generation_history
