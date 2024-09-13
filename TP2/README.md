@@ -1,9 +1,8 @@
 ## TP SIA - GRUPO 5 
 
-
 ## Integrantes
  Madero Torres, Eduardo Federico - 59494
- Ramos Marca, Mar´ıa Virginia - 67200
+ Ramos Marca, María Virginia - 67200
  Pluss, Ramiro - 66254
  Kuchukhidze, Giorgi - 67262
 
@@ -20,40 +19,45 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
 ```json
 {
   "genetic_algorithm": {
-    "population_size": <int>,
-    "offspring_count": <int>,
+    "population_size": ,
+    "offspring_count": ,
     "crossover": {
-      "type": <string>,
-      "rate": <float>
+      "type": ,
+      "rate": 
     },
     "mutation": {
-      "type": <string>,
-      "uniform": <boolean>,
-      "rate": <float>
+      "type": ,
+      "uniform": ,
+      "rate": 
     },
     "selection": {
       "parents": {
-        "method1": <string>,
-        "method2": <string>,
-        "method1_proportion": <float>
+        "method1": ,
+        "method2": ,
+        "method1_proportion": 
       },
       "replacement": {
-        "method1": <string>,
-        "method2": <string>,
-        "method1_proportion": <float>
+        "method1": ,
+        "method2": ,
+        "method1_proportion": 
+      },
+      "boltzmann": {
+        "Tmin": ,
+        "Tmax": ,
+        "k": 
       }
     },
-    "replacement_method": <string>,
+    "replacement_method": ,
     "stop_criteria": {
-      "max_generations": <int>,
-      "structure": <float>,
-      "content": <float>,
-      "optimal_fitness": <float>
+      "max_generations": ,
+      "structure": ,
+      "content": ,
+      "optimal_fitness": 
     },
-    "character_class": <int | null>,
-    "total_points": <int | null>
+    "character_class": ,
+    "total_points": 
   },
-  "time_limit": <int>
+  "time_limit": 
 }
 ```
 
@@ -62,8 +66,7 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
 ### Algoritmo Genético
 
 - `population_size`: Tamaño de la población (entero positivo)
-- `offspring_count`: Tamaño de la cantidad de hijos (entero positivo)
-
+- `offspring_count`: Cantidad de hijos a generar por generación (entero positivo)
 
 ### Cruce (Crossover)
 
@@ -84,6 +87,12 @@ Para `parents` y `replacement`:
 - `method1` y `method2`: Métodos de selección
   - Opciones: "tournament", "roulette", "universal", "boltzmann", "ranking", "elite"
 - `method1_proportion`: Proporción del primer método (float entre 0 y 1)
+
+#### Método Boltzmann y función de temperatura 
+
+- `Tmin`: Temperatura mínima (float positivo)
+- `Tmax`: Temperatura máxima (float positivo)
+- `k`: Constante de enfriamiento (float positivo)
 
 ### Método de Reemplazo
 
@@ -115,56 +124,60 @@ Para `parents` y `replacement`:
 {
   "genetic_algorithm": {
     "population_size": 100,
+    "offspring_count": 30,
     "crossover": {
       "type": "one_point",
       "rate": 0.8
     },
     "mutation": {
-      "type": "gen",
+      "type": "multigen",
       "uniform": true,
       "rate": 0.01
     },
     "selection": {
       "parents": {
-        "method1": "tournament",
+        "method1": "universal",
         "method2": "roulette",
         "method1_proportion": 0.7
       },
       "replacement": {
-        "method1": "elite",
+        "method1": "universal",
         "method2": "ranking",
         "method1_proportion": 0.2
+      },
+      "boltzmann": {
+        "Tmin": 0.5,
+        "Tmax": 2.0,
+        "k": 0.1
       }
     },
-    "replacement_method": "traditional",
+    "replacement_method": "young_bias",
     "stop_criteria": {
-      "max_generations": 100,
-      "structure": 0.98,
-      "content": 0.98,
-      "optimal_fitness": 0.95
+      "max_generations": 20,
+      "structure": 0.01,
+      "content": 0.01,
+      "optimal_fitness": 100.0
     },
     "character_class": null,
-    "total_points": null,
-    "time_limit": 120
-  }
-
+    "total_points": null
+  },
+  "time_limit": 10
 }
 ```
 
-Este ejemplo configura un algoritmo genético con una población de 100 individuos, usando cruce de un punto, mutación de gen uniforme, y una combinación de métodos de selección para padres y reemplazo. El método de reemplazo es el tradicional (Fill-All). La clase del personaje y el total de puntos se generarán aleatoriamente.
+Este ejemplo configura un algoritmo genético con una población de 100 individuos, generando 30 hijos por generación, usando cruce de un punto, mutación multigen uniforme, y una combinación de métodos de selección para padres y reemplazo. El método de reemplazo es de sesgo joven (Fill-Parent). La selección de Boltzmann está configurada con temperaturas mínima y máxima, y una constante de enfriamiento. La clase del personaje y el total de puntos se generarán aleatoriamente.
 
 ##  Ejecución del Programa
 
 Para ejecutar el programa:
 
-1. Se debe asegurar de tener Python instalado.
+1. Asegúrate de tener Python instalado.
 2. Navega hasta el directorio del proyecto en la terminal.
 3. Ejecuta uno de los siguientes comandos:
 
 ### Ejecutar el programa sin mostrar el historial:
 
 El programa generará el mejor personaje posible dentro del límite de tiempo especificado en la configuración.
-
 
 ```
 python main.py
@@ -181,3 +194,4 @@ python main.py --history
 - Implementación de interfaz gráfica para visualizar la evolución de los personajes.
 - Paralelización del algoritmo para mejorar el rendimiento.
 - Implementación de más operadores genéticos y métodos de selección.
+- Ajuste dinámico de parámetros durante la ejecución del algoritmo.
