@@ -1,7 +1,7 @@
 {
   "genetic_algorithm": {
     "population_size": 100,
-    "offspring_count": 56,
+    "offspring_count": 300,
     "crossover": {
       "type": "one_point",
       "rate": 0.8

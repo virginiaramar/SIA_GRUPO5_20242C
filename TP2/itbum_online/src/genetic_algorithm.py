@@ -134,12 +134,16 @@ class GeneticAlgorithm:
         sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
         selected = []
         
-        for i in range(N):
+        for i in range(N):  # Iteramos solo sobre N
             n_i = math.ceil((k - i) / N)
             if n_i > 0:
                 selected.extend([sorted_population[i]] * n_i)
             else:
-                break
+                break  # Si n_i llega a 0 o menos, terminamos la selección
+        
+        # Si aún no hemos seleccionado k individuos, completamos con los mejores
+        while len(selected) < k:
+            selected.append(sorted_population[0])
         
         return selected[:k]  # Aseguramos que devolvemos exactamente k individuos
 
