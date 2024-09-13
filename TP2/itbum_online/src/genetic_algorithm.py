@@ -9,6 +9,7 @@ class GeneticAlgorithm:
     def __init__(self, config: dict):
         self.config = config
         self.population_size = config['population_size']
+        self.offspring_count = config['offspring_count']  # Nuevo parámetro añadido
         self.crossover_type = config['crossover']['type']
         self.crossover_rate = config['crossover']['rate']
         self.mutation_type = config['mutation']['type']
@@ -31,7 +32,6 @@ class GeneticAlgorithm:
             height = random.uniform(1.3, 2.0)
             class_index = self.fixed_class
             character = Character(items, height, class_index, self.total_points)
-           # print(f"Initialized character with class: {character.get_class_name()}")  # Debugging
             population.append(character)
         return population
     
@@ -52,13 +52,8 @@ class GeneticAlgorithm:
             k1 = int(k * proportion)
             k2 = k - k1
             
-            # Seleccionar con el primer método
             selected1 = method1(population, k1)
-            
-            # Crear una nueva población sin los individuos ya seleccionados
             remaining_population = [ind for ind in population if ind not in selected1]
-            
-            # Seleccionar con el segundo método de la población restante
             selected2 = method2(remaining_population, k2)
             
             return selected1 + selected2
@@ -70,7 +65,7 @@ class GeneticAlgorithm:
         for _ in range(k):
             tournament = random.sample(population, tournament_size)
             if probabilistic:
-                threshold = 0.75  # Puedes ajustar este valor
+                threshold = 0.75
                 if random.random() < threshold:
                     selected.append(max(tournament, key=lambda x: x.get_performance()))
                 else:
@@ -119,7 +114,7 @@ class GeneticAlgorithm:
     def boltzmann_temperature(self) -> float:
         Tmin = 0.5
         Tmax = 2.0
-        k = 0.1
+        k = 0.1    
         return Tmax - (Tmax - Tmin) * (1 - math.exp(-k * self.generation))
 
     def ranking_selection(self, population: List[Character], k: int) -> List[Character]:
@@ -197,7 +192,7 @@ class GeneticAlgorithm:
 
         while self.generation < self.stop_criteria['max_generations']:
             # Selección de padres
-            parents = self.parent_selection(population, self.population_size)
+            parents = self.parent_selection(population, self.offspring_count)  # Cambiado a offspring_count
             
             # Generación de hijos
             offspring = []
@@ -209,14 +204,17 @@ class GeneticAlgorithm:
             # Aplicar método de reemplazo
             if self.config['replacement_method'] == 'traditional':
                 # Método Tradicional (Fill-All)
+                print("Método tradicional. La nueva población está conformada por "+ (str(len(population))) +" individuos SELECCIONADOS del conjunto formado por "+ str(len(population) + len(offspring)) + " individuos que corresponde a la suma de la generación actual y los hijos generados.")
                 combined = population + offspring
                 population = self.replacement_selection(combined, self.population_size)
             elif self.config['replacement_method'] == 'young_bias':
                 # Método de Sesgo Joven (Fill-Parent)
                 if len(offspring) > self.population_size:
+                    print("Hay sesgo Joven. La nueva población está conformada por "+ str(self.population_size) +" individuos SELECCIONADOS únicamente del conjunto de " + str(len(offspring)) + " HIJOS generados.")
                     population = self.replacement_selection(offspring, self.population_size)
                 else:
                     remaining = self.population_size - len(offspring)
+                    print("Hay sesgo Joven. La nueva población está conformada por " + str(len(offspring)) +" hijos generados (conjunto de todos los hijos) y  " + str(remaining) + " individuos SELECCIONADOS del conjunto formado por "+ str(len(population)) + " individuos de la generación actual")
                     population = offspring + self.replacement_selection(population, remaining)
             
             current_best = max(population, key=lambda x: x.get_performance())

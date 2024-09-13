@@ -21,6 +21,7 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
 {
   "genetic_algorithm": {
     "population_size": <int>,
+    "offspring_count": <int>,
     "crossover": {
       "type": <string>,
       "rate": <float>
@@ -61,6 +62,8 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
 ### Algoritmo Genético
 
 - `population_size`: Tamaño de la población (entero positivo)
+- `offspring_count`: Tamaño de la cantidad de hijos (entero positivo)
+
 
 ### Cruce (Crossover)
 
