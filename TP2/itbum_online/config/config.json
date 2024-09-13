@@ -13,7 +13,7 @@
     },
     "selection": {
       "parents": {
-        "method1": "boltzmann",
+        "method1": "tournament",
         "method2": "roulette",
         "method1_proportion": 0.7
       },
@@ -26,6 +26,11 @@
         "Tmin": 0.5,
         "Tmax": 2.0,
         "k": 0.1
+      },
+      "tournament": {
+        "type": "deterministic",
+        "m": 5,
+        "threshold": 0.75
       }
     },
     "replacement_method": "young_bias",

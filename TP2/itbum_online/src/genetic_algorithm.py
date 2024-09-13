@@ -24,6 +24,8 @@ class GeneticAlgorithm:
         self.generation_history = []
         self.time_limit = config['time_limit']
         self.start_time = time.time()
+        self.tournament_config = config['selection']['tournament']
+
 
     def initialize_population(self) -> List[Character]:
         population = []
@@ -37,12 +39,12 @@ class GeneticAlgorithm:
     
     def get_selection_method(self, config: dict) -> Callable:
         methods = {
-            'tournament': self.tournament_selection,
+            'elite': self.elite_selection,
             'roulette': self.roulette_selection,
             'universal': self.universal_selection,
-            'boltzmann': self.boltzmann_selection,
             'ranking': self.ranking_selection,
-            'elite': self.elite_selection
+            'boltzmann': self.boltzmann_selection,
+            'tournament': self.tournament_selection,
         }
         method1 = methods[config['method1']]
         method2 = methods[config['method2']]
@@ -63,20 +65,23 @@ class GeneticAlgorithm:
             return selected1 + selected2
         
         return combined_method
+    
 
-    def tournament_selection(self, population: List[Character], k: int, tournament_size: int = 5, probabilistic: bool = False) -> List[Character]:
-        selected = []
-        for _ in range(k):
-            tournament = random.sample(population, tournament_size)
-            if probabilistic:
-                threshold = 0.75
-                if random.random() < threshold:
-                    selected.append(max(tournament, key=lambda x: x.get_performance()))
-                else:
-                    selected.append(min(tournament, key=lambda x: x.get_performance()))
-            else:
-                selected.append(max(tournament, key=lambda x: x.get_performance()))
-        return selected
+    def elite_selection(self, population: List[Character], k: int) -> List[Character]:
+        n = len(population)
+        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
+        
+        if k <= n:
+            return sorted_population[:k]
+        else:
+            selected = []
+            for i in range(n):
+                repetitions = math.ceil((k - i) / n)
+                for _ in range(repetitions):
+                    if len(selected) == k:
+                        return selected
+                    selected.append(sorted_population[i])
+            return selected
 
     def roulette_selection(self, population: List[Character], k: int) -> List[Character]:
         # Calculate relative fitness p_j
@@ -98,6 +103,7 @@ class GeneticAlgorithm:
                     selected.append(population[i])
                     break
         return selected
+
 
     def universal_selection(self, population: List[Character], k: int) -> List[Character]:
         new_population = []
@@ -122,6 +128,32 @@ class GeneticAlgorithm:
                     break
         
         return new_population
+    
+    def ranking_selection(self, population: List[Character], k: int) -> List[Character]:
+        # Ordenar la población por fitness (de mayor a menor)
+        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
+        N = len(population)
+        
+        # Calcular el pseudo-fitness basado en el ranking
+        pseudo_fitness = [(N - i) / N for i in range(N)]
+        
+        # Calcular las probabilidades relativas (p_j)
+        total_pseudo_fitness = sum(pseudo_fitness)
+        relative_probabilities = [fit / total_pseudo_fitness for fit in pseudo_fitness]
+        
+        # Calcular las probabilidades acumuladas (q_i)
+        cumulative_probabilities = [sum(relative_probabilities[:i+1]) for i in range(N)]
+        
+        # Seleccionar k individuos usando el método de la ruleta
+        selected = []
+        for _ in range(k):
+            r = random.random()
+            for i, q_i in enumerate(cumulative_probabilities):
+                if r <= q_i:
+                    selected.append(sorted_population[i])
+                    break
+        
+        return selected
 
     def boltzmann_selection(self, population: List[Character], k: int) -> List[Character]:
         T = self.boltzmann_temperature()
@@ -157,49 +189,34 @@ class GeneticAlgorithm:
         k = self.config['selection']['boltzmann']['k']
         return Tmax - (Tmax - Tmin) * (1 - math.exp(-k * self.generation))
 
-    def ranking_selection(self, population: List[Character], k: int) -> List[Character]:
-        # Ordenar la población por fitness (de mayor a menor)
-        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
-        N = len(population)
-        
-        # Calcular el pseudo-fitness basado en el ranking
-        pseudo_fitness = [(N - i) / N for i in range(N)]
-        
-        # Calcular las probabilidades relativas (p_j)
-        total_pseudo_fitness = sum(pseudo_fitness)
-        relative_probabilities = [fit / total_pseudo_fitness for fit in pseudo_fitness]
-        
-        # Calcular las probabilidades acumuladas (q_i)
-        cumulative_probabilities = [sum(relative_probabilities[:i+1]) for i in range(N)]
-        
-        # Seleccionar k individuos usando el método de la ruleta
-        selected = []
-        for _ in range(k):
-            r = random.random()
-            for i, q_i in enumerate(cumulative_probabilities):
-                if r <= q_i:
-                    selected.append(sorted_population[i])
-                    break
-        
-        return selected
-        
-    def elite_selection(self, population: List[Character], k: int) -> List[Character]:
-        n = len(population)
-        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
-        
-        if k <= n:
-            return sorted_population[:k]
+    def tournament_selection(self, population: List[Character], k: int) -> List[Character]:
+        if self.tournament_config['type'] == 'deterministic':
+            return self.deterministic_tournament(population, k, self.tournament_config['m'])
+        elif self.tournament_config['type'] == 'probabilistic':
+            return self.probabilistic_tournament(population, k, self.tournament_config['threshold'])
         else:
-            selected = []
-            for i in range(n):
-                repetitions = math.ceil((k - i) / n)
-                for _ in range(repetitions):
-                    if len(selected) == k:
-                        return selected
-                    selected.append(sorted_population[i])
-           # print(len(selected))
-            return selected
+            raise ValueError("Invalid tournament type")
 
+    def deterministic_tournament(self, population: List[Character], k: int, m: int) -> List[Character]:
+        new_population = []
+        for _ in range(k):
+            selected_characters = random.sample(population, m)
+            winner = max(selected_characters, key=lambda x: x.get_performance())
+            new_population.append(winner)
+        return new_population
+
+    def probabilistic_tournament(self, population: List[Character], k: int, threshold: float) -> List[Character]:
+        new_population = []
+        for _ in range(k):
+            selected_characters = random.sample(population, 2)
+            selected_characters.sort(key=lambda x: x.get_performance(), reverse=True)
+            if random.random() < threshold:
+                new_population.append(selected_characters[0])  # Select the best
+            else:
+                new_population.append(selected_characters[1])  # Select the worst
+        return new_population
+
+        
     def crossover(self, parent1: Character, parent2: Character) -> Tuple[Character, Character]:
         if random.random() > self.crossover_rate:
             return parent1, parent2
