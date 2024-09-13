@@ -130,7 +130,18 @@ class GeneticAlgorithm:
         return 2 - 2 * (i - 1) / (N - 1)
 
     def elite_selection(self, population: List[Character], k: int) -> List[Character]:
-        return sorted(population, key=lambda x: x.get_performance(), reverse=True)[:k]
+        N = len(population)
+        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
+        selected = []
+        
+        for i in range(N):
+            n_i = math.ceil((k - i) / N)
+            if n_i > 0:
+                selected.extend([sorted_population[i]] * n_i)
+            else:
+                break
+        
+        return selected[:k]  # Aseguramos que devolvemos exactamente k individuos
 
     def crossover(self, parent1: Character, parent2: Character) -> Tuple[Character, Character]:
         if random.random() > self.crossover_rate:
@@ -192,7 +203,7 @@ class GeneticAlgorithm:
 
         while self.generation < self.stop_criteria['max_generations']:
             # Selección de padres
-            parents = self.parent_selection(population, self.offspring_count)  # Cambiado a offspring_count
+            parents = self.parent_selection(population, self.offspring_count)  # Cambiado a offspring_count para q sea igual
             
             # Generación de hijos
             offspring = []

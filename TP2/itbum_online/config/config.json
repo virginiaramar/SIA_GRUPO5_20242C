@@ -13,7 +13,7 @@
     },
     "selection": {
       "parents": {
-        "method1": "tournament",
+        "method1": "elite",
         "method2": "roulette",
         "method1_proportion": 0.7
       },
