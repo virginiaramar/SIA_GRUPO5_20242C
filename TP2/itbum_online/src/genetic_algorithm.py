@@ -37,7 +37,7 @@ class GeneticAlgorithm:
     
     def get_selection_method(self, config: dict) -> Callable:
         methods = {
-            'tournament': lambda pop, k: self.tournament_selection(pop, k, probabilistic=True),
+            'tournament': self.tournament_selection,
             'roulette': self.roulette_selection,
             'universal': self.universal_selection,
             'boltzmann': self.boltzmann_selection,
@@ -51,7 +51,17 @@ class GeneticAlgorithm:
         def combined_method(population: List[Character], k: int) -> List[Character]:
             k1 = int(k * proportion)
             k2 = k - k1
-            return method1(population, k1) + method2(population, k2)
+            
+            # Seleccionar con el primer método
+            selected1 = method1(population, k1)
+            
+            # Crear una nueva población sin los individuos ya seleccionados
+            remaining_population = [ind for ind in population if ind not in selected1]
+            
+            # Seleccionar con el segundo método de la población restante
+            selected2 = method2(remaining_population, k2)
+            
+            return selected1 + selected2
         
         return combined_method
 
