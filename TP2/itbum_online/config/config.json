@@ -1,7 +1,7 @@
 {
   "genetic_algorithm": {
     "population_size": 100,
-    "offspring_count": 300,
+    "offspring_count": 30,
     "crossover": {
       "type": "one_point",
       "rate": 0.8
@@ -13,17 +13,22 @@
     },
     "selection": {
       "parents": {
-        "method1": "elite",
+        "method1": "boltzmann",
         "method2": "roulette",
         "method1_proportion": 0.7
       },
       "replacement": {
-        "method1": "elite",
-        "method2": "ranking",
+        "method1": "universal",
+        "method2": "boltzmann",
         "method1_proportion": 0.2
+      },
+      "boltzmann": {
+        "Tmin": 0.5,
+        "Tmax": 2.0,
+        "k": 0.1
       }
     },
-    "replacement_method": "traditional",
+    "replacement_method": "young_bias",
     "stop_criteria": {
       "max_generations": 20,
       "structure": 0.01,

@@ -52,9 +52,13 @@ class GeneticAlgorithm:
             k1 = int(k * proportion)
             k2 = k - k1
             
+            # Método 1: Permitir repeticiones
             selected1 = method1(population, k1)
-            remaining_population = [ind for ind in population if ind not in selected1]
-            selected2 = method2(remaining_population, k2)
+            
+            # Método 2: Permitir repeticiones
+            selected2 = method2(population, k2)
+            
+            print(f"Method 1 ({config['method1']}) selected: {len(selected1)}, Method 2 ({config['method2']}) selected: {len(selected2)}")
             
             return selected1 + selected2
         
@@ -75,77 +79,126 @@ class GeneticAlgorithm:
         return selected
 
     def roulette_selection(self, population: List[Character], k: int) -> List[Character]:
-        fitnesses = [c.get_performance() for c in population]
-        total_fitness = sum(fitnesses)
-        probabilities = [f/total_fitness for f in fitnesses]
+        # Calculate relative fitness p_j
+        total_fitness = sum(character.get_performance() for character in population)
+        relative_fitness = [character.get_performance() / total_fitness for character in population]
+        
+        # Calculate cumulative relative fitness q_i
+        cumulative_fitness = [sum(relative_fitness[:i+1]) for i in range(len(relative_fitness))]
+        
         selected = []
         for _ in range(k):
-            r = random.random()
-            for i, prob in enumerate(probabilities):
-                if r <= prob:
+            r_j = random.uniform(0, 1)
+            # Find the index i where q_i-1 < r_j <= q_i
+            for i, q_i in enumerate(cumulative_fitness):
+                if i == 0 and 0 <= r_j <= q_i:
                     selected.append(population[i])
                     break
-                r -= prob
+                elif cumulative_fitness[i-1] < r_j <= q_i:
+                    selected.append(population[i])
+                    break
         return selected
 
     def universal_selection(self, population: List[Character], k: int) -> List[Character]:
-        fitnesses = [c.get_performance() for c in population]
-        total_fitness = sum(fitnesses)
-        probabilities = [f/total_fitness for f in fitnesses]
-        r = random.random() / k
-        return [population[self.universal_selection_index(probabilities, r + i/k)] for i in range(k)]
-
-    @staticmethod
-    def universal_selection_index(probabilities: List[float], r: float) -> int:
-        c = 0
-        for i, prob in enumerate(probabilities):
-            c += prob
-            if c > r:
-                return i
-        return len(probabilities) - 1
+        new_population = []
+        
+        # Calculate relative fitness p_j
+        total_fitness = sum(character.get_performance() for character in population)
+        relative_fitness = [character.get_performance() / total_fitness for character in population]
+        
+        # Calculate cumulative relative fitness q_i
+        cumulative_fitness = [sum(relative_fitness[:i+1]) for i in range(len(relative_fitness))]
+        
+        for j in range(k):
+            r_j = (random.uniform(0, 1) + j) / k
+            
+            # Find the index i where q_i-1 < r_j <= q_i
+            for i, q_i in enumerate(cumulative_fitness):
+                if i == 0 and 0 <= r_j <= q_i:
+                    new_population.append(population[i])
+                    break
+                elif cumulative_fitness[i-1] < r_j <= q_i:
+                    new_population.append(population[i])
+                    break
+        
+        return new_population
 
     def boltzmann_selection(self, population: List[Character], k: int) -> List[Character]:
         T = self.boltzmann_temperature()
-        exp_values = [math.exp(c.get_performance() / T) for c in population]
-        total = sum(exp_values)
-        probabilities = [e/total for e in exp_values]
-        return random.choices(population, weights=probabilities, k=k)
+        
+        # Calcular ExpVal para cada individuo
+        fitnesses = [c.get_performance() for c in population]
+        avg_fitness = sum(fitnesses) / len(fitnesses)
+        exp_values = [math.exp(f / T) for f in fitnesses]
+        avg_exp = sum(exp_values) / len(exp_values)
+        exp_vals = [ev / avg_exp for ev in exp_values]
+        
+        # Calcular probabilidades relativas
+        total_exp_val = sum(exp_vals)
+        probabilities = [ev / total_exp_val for ev in exp_vals]
+        
+        # Calcular probabilidades acumuladas
+        cumulative_probabilities = [sum(probabilities[:i+1]) for i in range(len(probabilities))]
+        
+        # Seleccionar k individuos usando el método de la ruleta
+        selected = []
+        for _ in range(k):
+            r = random.random()
+            for i, q_i in enumerate(cumulative_probabilities):
+                if r <= q_i:
+                    selected.append(population[i])
+                    break
+        
+        return selected
 
     def boltzmann_temperature(self) -> float:
-        Tmin = 0.5
-        Tmax = 2.0
-        k = 0.1    
+        Tmin = self.config['selection']['boltzmann']['Tmin']
+        Tmax = self.config['selection']['boltzmann']['Tmax']
+        k = self.config['selection']['boltzmann']['k']
         return Tmax - (Tmax - Tmin) * (1 - math.exp(-k * self.generation))
 
     def ranking_selection(self, population: List[Character], k: int) -> List[Character]:
+        # Ordenar la población por fitness (de mayor a menor)
         sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
         N = len(population)
-        ranks = [self.ranking_function(i, N) for i in range(1, N+1)]
-        total = sum(ranks)
-        probabilities = [r/total for r in ranks]
-        return random.choices(sorted_population, weights=probabilities, k=k)
-
-    @staticmethod
-    def ranking_function(i: int, N: int) -> float:
-        return 2 - 2 * (i - 1) / (N - 1)
-
-    def elite_selection(self, population: List[Character], k: int) -> List[Character]:
-        N = len(population)
-        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
+        
+        # Calcular el pseudo-fitness basado en el ranking
+        pseudo_fitness = [(N - i) / N for i in range(N)]
+        
+        # Calcular las probabilidades relativas (p_j)
+        total_pseudo_fitness = sum(pseudo_fitness)
+        relative_probabilities = [fit / total_pseudo_fitness for fit in pseudo_fitness]
+        
+        # Calcular las probabilidades acumuladas (q_i)
+        cumulative_probabilities = [sum(relative_probabilities[:i+1]) for i in range(N)]
+        
+        # Seleccionar k individuos usando el método de la ruleta
         selected = []
+        for _ in range(k):
+            r = random.random()
+            for i, q_i in enumerate(cumulative_probabilities):
+                if r <= q_i:
+                    selected.append(sorted_population[i])
+                    break
         
-        for i in range(N):  # Iteramos solo sobre N
-            n_i = math.ceil((k - i) / N)
-            if n_i > 0:
-                selected.extend([sorted_population[i]] * n_i)
-            else:
-                break  # Si n_i llega a 0 o menos, terminamos la selección
+        return selected
         
-        # Si aún no hemos seleccionado k individuos, completamos con los mejores
-        while len(selected) < k:
-            selected.append(sorted_population[0])
+    def elite_selection(self, population: List[Character], k: int) -> List[Character]:
+        n = len(population)
+        sorted_population = sorted(population, key=lambda x: x.get_performance(), reverse=True)
         
-        return selected[:k]  # Aseguramos que devolvemos exactamente k individuos
+        if k <= n:
+            return sorted_population[:k]
+        else:
+            selected = []
+            for i in range(n):
+                repetitions = math.ceil((k - i) / n)
+                for _ in range(repetitions):
+                    if len(selected) == k:
+                        return selected
+                    selected.append(sorted_population[i])
+           # print(len(selected))
+            return selected
 
     def crossover(self, parent1: Character, parent2: Character) -> Tuple[Character, Character]:
         if random.random() > self.crossover_rate:
