@@ -18,7 +18,7 @@
         "method1_proportion": 0.7
       },
       "replacement": {
-        "method1": "universal",
+        "method1": "elite",
         "method2": "boltzmann",
         "method1_proportion": 0.2
       },
@@ -41,7 +41,7 @@
       "optimal_fitness": 100.0
     },
     "character_class": null,
-    "total_points": null,
+    "total_points": 200,
     "time_limit": 10
   }
 }

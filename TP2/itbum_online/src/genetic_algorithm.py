@@ -225,24 +225,72 @@ class GeneticAlgorithm:
         genotype2 = parent2.get_genotype()
 
         if self.crossover_type == 'one_point':
-            point = random.randint(1, len(genotype1) - 1)
-            child1 = genotype1[:point] + genotype2[point:]
-            child2 = genotype2[:point] + genotype1[point:]
+            child1, child2 = self.one_point_crossover(genotype1, genotype2)
         elif self.crossover_type == 'two_point':
-            points = sorted(random.sample(range(1, len(genotype1)), 2))
-            child1 = genotype1[:points[0]] + genotype2[points[0]:points[1]] + genotype1[points[1]:]
-            child2 = genotype2[:points[0]] + genotype1[points[0]:points[1]] + genotype2[points[1]:]
+            child1, child2 = self.two_point_crossover(genotype1, genotype2)
         elif self.crossover_type == 'uniform':
-            child1 = [g1 if random.random() < 0.5 else g2 for g1, g2 in zip(genotype1, genotype2)]
-            child2 = [g2 if random.random() < 0.5 else g1 for g1, g2 in zip(genotype1, genotype2)]
-        elif self.crossover_type == 'arithmetic':
-            alpha = random.random()
-            child1 = [alpha * g1 + (1 - alpha) * g2 for g1, g2 in zip(genotype1, genotype2)]
-            child2 = [(1 - alpha) * g1 + alpha * g2 for g1, g2 in zip(genotype1, genotype2)]
+            child1, child2 = self.uniform_crossover(genotype1, genotype2)
+        elif self.crossover_type == 'anular':
+            child1, child2 = self.anular_crossover(genotype1, genotype2)
+        else:
+            raise ValueError(f"Invalid crossover type: {self.crossover_type}")
 
         return (Character.from_genotype(child1, parent1.class_index, self.total_points),
                 Character.from_genotype(child2, parent2.class_index, self.total_points))
 
+    def one_point_crossover(self, genes1: List[float], genes2: List[float]) -> Tuple[List[float], List[float]]:
+        """
+        Cruce de un punto:
+        Se elige un locus al azar y se intercambian los alelos a partir de ese locus.
+        P = [0,S-1] ; S: Cantidad de genes
+        """
+        p = random.randint(0, len(genes1) - 1)
+        child1 = genes1[:p] + genes2[p:]
+        child2 = genes2[:p] + genes1[p:]
+        return child1, child2
+
+    def two_point_crossover(self, genes1: List[float], genes2: List[float]) -> Tuple[List[float], List[float]]:
+        """
+        Cruce de dos puntos:
+        Se eligen dos locus al azar y se intercambian los alelos entre ellos.
+        P1 = [0,S-1] ; P2 = [0, S-1] ; P1 ≤ P2
+        """
+        p1, p2 = sorted(random.sample(range(len(genes1)), 2))
+        child1 = genes1[:p1] + genes2[p1:p2] + genes1[p2:]
+        child2 = genes2[:p1] + genes1[p1:p2] + genes2[p2:]
+        return child1, child2
+
+    def uniform_crossover(self, genes1: List[float], genes2: List[float]) -> Tuple[List[float], List[float]]:
+        """
+        Cruce uniforme:
+        Se produce un intercambio de alelos en cada gen con probabilidad P [0, 1].
+        (Por lo general P = 0.5).
+        Es el único tipo de cruce visto que no mantiene correlación posicional entre alelos.
+        """
+        child1, child2 = [], []
+        for g1, g2 in zip(genes1, genes2):
+            if random.random() < 0.5:
+                child1.append(g1)
+                child2.append(g2)
+            else:
+                child1.append(g2)
+                child2.append(g1)
+        return child1, child2
+
+    def anular_crossover(self, genes1: List[float], genes2: List[float]) -> Tuple[List[float], List[float]]:
+        """
+        Cruce anular:
+        Se elige un locus P al azar y una longitud L.
+        Se intercambia el segmento de longitud L a partir de P.
+        P = [0,S-1] ; L = [0, ⌈S/2⌉]
+        """
+        p = random.randint(0, len(genes1) - 1)
+        length = random.randint(0, math.ceil(len(genes1)/2))
+        length = min(length, len(genes1) - p)
+        child1 = genes1[:p] + genes2[p:p+length] + genes1[p+length:]
+        child2 = genes2[:p] + genes1[p:p+length] + genes2[p+length:]
+        return child1, child2
+    
     def mutate(self, character: Character) -> Character:
         genotype = character.get_genotype()
         
