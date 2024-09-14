@@ -342,9 +342,9 @@ class GeneticAlgorithm:
 
     def mutate_gene(self, gene: float, index: int) -> float:
         if index < 5:  # Items
-            return max(0, gene + random.uniform(-10, 10))
+            return max(0, gene + random.uniform(-50, 50))
         elif index == 5:  # Height
-            return max(1.3, min(2.0, gene + random.uniform(-0.1, 0.1)))
+            return max(1.3, min(2.0, gene + random.uniform(-0.5, 0.5)))
         else:  # No mutation for class
             return gene
         

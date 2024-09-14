@@ -1,20 +1,24 @@
 import random
 from src.eve import EVE
+from typing import Dict
+from typing import List
+
+
 
 class Character:
-    def __init__(self, items: dict[str, float], height: float, class_index: int = None, total_points: int = None):
+    def __init__(self, items: Dict[str, float], height: float, class_index: int = None, total_points: int = None):
         self.total_points = total_points 
         self.items = self._normalize_items(items, self.total_points)
         self.height = height
         self.class_index = class_index 
         
     @staticmethod
-    def _normalize_items(items: dict[str, float], total_points: int) -> dict[str, float]:
+    def _normalize_items(items: Dict[str, float], total_points: int) -> Dict[str, float]:
         total = sum(items.values())
         return {k: v * total_points / total for k, v in items.items()}
 
     @staticmethod
-    def from_genotype(genotype: list[float], class_index: int, total_points: int = None):
+    def from_genotype(genotype: List[float], class_index: int, total_points: int = None):
         items = {
             "strength": genotype[0],
             "agility": genotype[1],
@@ -25,7 +29,7 @@ class Character:
         height = genotype[5]
         return Character(items, height, class_index, total_points)
 
-    def get_genotype(self) -> list[float]:
+    def get_genotype(self) -> List[float]:
         genes = list(self.items.values())
         genes.append(self.height)
         return genes  # No incluimos class_index en el genotipo
