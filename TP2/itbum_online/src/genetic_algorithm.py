@@ -13,7 +13,6 @@ class GeneticAlgorithm:
         self.crossover_type = config['crossover']['type']
         self.crossover_rate = config['crossover']['rate']
         self.mutation_type = config['mutation']['type']
-        self.mutation_uniform = config['mutation']['uniform']
         self.mutation_rate = config['mutation']['rate']
         self.parent_selection = self.get_selection_method(config['selection']['parents'])
         self.replacement_selection = self.get_selection_method(config['selection']['replacement'])
@@ -291,31 +290,64 @@ class GeneticAlgorithm:
         child2 = genes2[:p] + genes1[p:p+length] + genes2[p+length:]
         return child1, child2
     
-    def mutate(self, character: Character) -> Character:
-        genotype = character.get_genotype()
-        
+    def mutate(self, population: List[Character]) -> List[Character]:
         if self.mutation_type == 'gen':
+            return self.gene_mutation(population)
+        elif self.mutation_type == 'limited_multigen':
+            return self.limited_multigen_mutation(population)
+        elif self.mutation_type == 'uniform_multigen':
+            return self.uniform_multigen_mutation(population)
+        elif self.mutation_type == 'complete':
+            return self.complete_mutation(population)
+        else:
+            raise ValueError(f"Invalid mutation type: {self.mutation_type}")
+
+    def gene_mutation(self, population: List[Character]) -> List[Character]:
+        for character in population:
             if random.random() < self.mutation_rate:
+                genotype = character.get_genotype()
                 index = random.randint(0, len(genotype) - 1)
                 genotype[index] = self.mutate_gene(genotype[index], index)
-        elif self.mutation_type == 'multigen':
+                character = Character.from_genotype(genotype, character.class_index, self.total_points)
+        return population
+
+    def limited_multigen_mutation(self, population: List[Character]) -> List[Character]:
+        for character in population:
+            if random.random() < self.mutation_rate:
+                genotype = character.get_genotype()
+                M = random.randint(1, len(genotype))
+                indices = random.sample(range(len(genotype)), M)
+                for index in indices:
+                    genotype[index] = self.mutate_gene(genotype[index], index)
+                character = Character.from_genotype(genotype, character.class_index, self.total_points)
+        return population
+
+    def uniform_multigen_mutation(self, population: List[Character]) -> List[Character]:
+        for character in population:
+            genotype = character.get_genotype()
             for i in range(len(genotype)):
                 if random.random() < self.mutation_rate:
                     genotype[i] = self.mutate_gene(genotype[i], i)
+            character = Character.from_genotype(genotype, character.class_index, self.total_points)
+        return population
 
-        if not self.mutation_uniform:
-            self.mutation_rate *= 0.99  # Decrease mutation rate over time
-
-        return Character.from_genotype(genotype, character.class_index, self.total_points)
+    def complete_mutation(self, population: List[Character]) -> List[Character]:
+        for character in population:
+            if random.random() < self.mutation_rate:
+                genotype = character.get_genotype()
+                for i in range(len(genotype)):
+                    genotype[i] = self.mutate_gene(genotype[i], i)
+                character = Character.from_genotype(genotype, character.class_index, self.total_points)
+        return population
 
     def mutate_gene(self, gene: float, index: int) -> float:
         if index < 5:  # Items
-            return max(0, gene + random.uniform(-10, 10))  
+            return max(0, gene + random.uniform(-10, 10))
         elif index == 5:  # Height
             return max(1.3, min(2.0, gene + random.uniform(-0.1, 0.1)))
         else:  # No mutation for class
             return gene
-
+        
     def evolve(self) -> Character:
         population = self.initialize_population()
         best_fitness = float('-inf')
@@ -325,15 +357,17 @@ class GeneticAlgorithm:
 
         while self.generation < self.stop_criteria['max_generations']:
             # Selección de padres
-            parents = self.parent_selection(population, self.offspring_count)  # Cambiado a offspring_count para q sea igual
+            parents = self.parent_selection(population, self.offspring_count)
             
             # Generación de hijos
             offspring = []
             for i in range(0, len(parents), 2):
                 if i + 1 < len(parents):
                     child1, child2 = self.crossover(parents[i], parents[i+1])
-                    offspring.extend([self.mutate(child1), self.mutate(child2)])
+                    offspring.extend([child1, child2])
 
+            # Mutación
+            offspring = self.mutate(offspring)
             # Aplicar método de reemplazo
             if self.config['replacement_method'] == 'traditional':
                 # Método Tradicional (Fill-All)

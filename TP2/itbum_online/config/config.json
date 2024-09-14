@@ -7,8 +7,7 @@
       "rate": 0.8
     },
     "mutation": {
-      "type": "multigen",
-      "uniform": true,
+      "type": "uniform_multigen",
       "rate": 0.01
     },
     "selection": {

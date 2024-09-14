@@ -36,6 +36,7 @@ class Character:
     def get_class_name(self):
         class_names = ["Warrior", "Archer", "Guardian", "Mage"]
         return class_names[self.class_index]
+    
 
     def __str__(self):
         return f"Character: \nClass: {self.get_class_name()} \nItems: {self.items} \nHeight: {self.height}\nTotal Points: {self.total_points}\n"

@@ -24,8 +24,7 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
       "rate": "<float: 0.0 - 1.0>"
     },
     "mutation": {
-      "type": "<string: 'gen', 'multigen'>",
-      "uniform": "<boolean>",
+      "type": "<string: 'gen', 'limited_multigen', 'uniform_multigen', 'complete'>",
       "rate": "<float: 0.0 - 1.0>"
     },
     "selection": {
@@ -82,8 +81,7 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
 ### Mutación
 
 - `type`: Tipo de mutación
-  - Opciones: "gen", "multigen"
-- `uniform`: Si la mutación es uniforme o no (boolean)
+  - Opciones: "gen", "limited_multigen", "uniform_multigen", "complete"
 - `rate`: Tasa de mutación (float entre 0 y 1)
 
 ### Selección
@@ -142,8 +140,7 @@ Para `parents` y `replacement`:
       "rate": 0.8
     },
     "mutation": {
-      "type": "multigen",
-      "uniform": true,
+      "type": "uniform_multigen",
       "rate": 0.01
     },
     "selection": {
