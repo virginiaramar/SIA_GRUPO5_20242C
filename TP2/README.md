@@ -15,6 +15,7 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
 ## Guía de Configuración para ITBUM ONLINE 
 
 **Estructura del archivo config.json**
+```json
 {
   "genetic_algorithm": {
     "population_size": "<int>",
@@ -61,6 +62,7 @@ Este proyecto implementa un sistema de creación de personajes para el juego ITB
   },
   "time_limit": "<int>"
 }
+```
 
 ## Opciones de Configuración
 
