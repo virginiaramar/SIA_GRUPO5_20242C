@@ -34,11 +34,13 @@ def save_all_simulations_to_csv(history, best_character, filename, sim_num, appe
             writer = csv.writer(file, delimiter=',')
             
             if not append:  # Write the header for the first simulation
-                writer.writerow(['Simulation', 'Generation', 'Best Fitness', 'Average Fitness', 'Class', 'Strength', 'Agility', 'Expertise', 'Endurance', 'Health', 'Height', 'Total Points', 'Performance'])
+                writer.writerow(['Simulation', 'Generation', 'Best Fitness', 'Average Fitness', 'Class', 'Strength', 'Agility', 'Expertise', 'Endurance', 'Health', 'Height', 'Total Points', 'Performance', 'v_strength',
+                                 'v_agility','v_expertise','v_endurance', 'v_health', 'v_height'])
 
             for gen in history:
                 # Write the generation history and best character attributes
-                character_items = best_character.items
+                character_items = gen['best_character'].items
+                variance_history = gen['variance_attrib']
                 writer.writerow([
                     sim_num, 
                     gen['generation'], 
@@ -50,9 +52,15 @@ def save_all_simulations_to_csv(history, best_character, filename, sim_num, appe
                     f"{character_items['expertise']:.4f}",
                     f"{character_items['endurance']:.4f}",
                     f"{character_items['health']:.4f}",
-                    f"{best_character.height:.4f}",
+                    f"{gen['best_character'].height:.4f}",
                     best_character.total_points,
-                    f"{best_character.get_performance():.4f}"
+                    f"{best_character.get_performance():.4f}",
+                    f"{variance_history['strength']:.4f}", 
+                    f"{variance_history['agility']:.4f}", 
+                    f"{variance_history['expertise']:.4f}", 
+                    f"{variance_history['endurance']:.4f}", 
+                    f"{variance_history['health']:.4f}", 
+                    f"{variance_history['height']:.4f}", 
                 ])
             
         print(f"Simulation {sim_num} data saved to {filename}")
@@ -72,22 +80,22 @@ def main():
     ga_params = config.get_genetic_algorithm_params()
 
     for sim_num in range(1, args.simulations + 1):
-        print(f"\nRunning simulation {sim_num}...\n")
+        # print(f"\nRunning simulation {sim_num}...\n")
         ga = GeneticAlgorithm(ga_params)
 
         start_time = time.time()
         best_character = ga.evolve()
         end_time = time.time()
 
-        print(f"\nBest character found in simulation {sim_num}:")
-        print(best_character)
-        print(f"Performance: {best_character.get_performance():.4f}")
-        print(f"Time taken for simulation {sim_num}: {end_time - start_time:.2f} seconds")
+        # print(f"\nBest character found in simulation {sim_num}:")
+        # print(best_character)
+        # print(f"Performance: {best_character.get_performance():.4f}")
+        # print(f"Time taken for simulation {sim_num}: {end_time - start_time:.2f} seconds")
 
         if args.history:
             history = ga.get_generation_history()
-            print(f"\nTotal generations in history for simulation {sim_num}: {len(history)}")
-            print("\nGeneration History:")
+            # print(f"\nTotal generations in history for simulation {sim_num}: {len(history)}")
+            # print("\nGeneration History:")
             if args.save_csv:
                 save_all_simulations_to_csv(history, best_character, args.save_csv, sim_num, append=(sim_num > 1))
             visualize_progress(history, best_character.get_class_name(), sim_num)

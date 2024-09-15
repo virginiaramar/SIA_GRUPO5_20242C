@@ -1,71 +1,96 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import json
 
-# Leer los datos del archivo CSV
+# Leer el archivo CSV
 df = pd.read_csv('simulations_warrior.csv')
 
-# Función para calcular el índice de diversidad de Shannon
-def shannon_index(values):
-    if len(values) == 0:  # Evitar problemas con datos vacíos
-        return 0
-    value_counts = pd.Series(values).value_counts()
-    prob = value_counts / len(values)
-    # Agregar un pequeño valor para evitar log(0) y calcular el índice de Shannon
-    return -np.sum(prob * np.log(prob + 1e-9))
+# Calcular el promedio del fitness total global por simulación
+average_fitness_per_simulation = df.groupby('Simulation')['Total Points'].mean()
 
-# Calcular el promedio de la aptitud (fitness) global
-global_fitness = df['Average Fitness'].mean()
+# Calcular el promedio global del fitness total
+global_average_fitness = average_fitness_per_simulation.mean()
 
-# Agrupar por simulación y calcular el promedio de fitness para cada simulación
-simulation_fitness = df.groupby('Simulation').agg({
-    'Average Fitness': 'mean'
-}).reset_index()
+# Encontrar la simulación con el promedio de fitness más cercano al promedio global
+closest_simulation = average_fitness_per_simulation.sub(global_average_fitness).abs().idxmin()
 
-# Encontrar la simulación cuyo promedio de fitness esté más cerca del fitness global
-simulation_fitness['Fitness Difference'] = abs(simulation_fitness['Average Fitness'] - global_fitness)
-closest_simulation = simulation_fitness.loc[simulation_fitness['Fitness Difference'].idxmin()]
+# Filtrar los datos para la simulación seleccionada
+df_selected_simulation = df[df['Simulation'] == closest_simulation]
 
-# Filtrar datos para la simulación más cercana
-simulation_to_plot = closest_simulation['Simulation']
-filtered_data = df[df['Simulation'] == simulation_to_plot]
+# Calcular la varianza de cada atributo por generación para la simulación seleccionada
+# Aquí usamos directamente las columnas de varianza (v_*), ajusta según tus datos
+diversity = df_selected_simulation.groupby('Generation').agg({
+    'v_strength': 'mean',
+    'v_agility': 'mean',
+    'v_expertise': 'mean',
+    'v_endurance': 'mean',
+    'v_health': 'mean',
+    'v_height': 'mean'
+})
 
-# Agrupar por generación y calcular el índice de Shannon para cada atributo en esa simulación
-shannon_diversity_simulation = filtered_data.groupby('Generation').agg({
-    'Strength': lambda x: shannon_index(x),
-    'Agility': lambda x: shannon_index(x),
-    'Expertise': lambda x: shannon_index(x),
-    'Endurance': lambda x: shannon_index(x),
-    'Health': lambda x: shannon_index(x),
-}).reset_index()
+print(f"Simulación seleccionada: {closest_simulation}")
+print(diversity)
 
-# Verificar valores calculados para depuración
-print("Shannon Index values for each generation:")
-print(shannon_diversity_simulation)
+# Configuración del algoritmo genético
+with open('config\config.json', 'r') as f:
+    config = json.load(f)
 
-# Crear la gráfica
-plt.figure(figsize=(12, 8))
-generations = shannon_diversity_simulation['Generation']
 
-for attribute in ['Strength', 'Agility', 'Expertise', 'Endurance', 'Health']:
-    plt.plot(
-        generations,
-        shannon_diversity_simulation[attribute],
-        marker='o',
-        label=f'{attribute} Shannon Index'
-    )
+config_text = (
+    "$Population Size:$ {}\n"
+    "$Offspring Count:$ {}\n\n"
+    "$Selection:$\n  $Method1:$ {} ({:.1f}%)\n  $Method2:$ {} ({:.1f}%)\n"
+    "$Crossover:$\n  $Type:$ {}\n  Rate: {}\n"
+    "$Mutation:$\n  $Type:$ {}\n  Rate: {}\n  Method: {}\n"
+    "$Replacement:$\n  $Method1:$ {} ({:.1f}%)\n  $Method2:$ {} ({:.1f}%)\n"
+    "$Replacement Method:$ {}\n\n"
+    "$Max Generations:$ {}\n"
+    "$Content:$ {}\n"
+    "$Optimal Fitness:$ {}\n"
+    "$Character Class:$ {}\n"
+    "$Total Points:$ {}\n"
+    "$Time Limit:$ {}"
+).format(
+    config['genetic_algorithm']['population_size'],
+    config['genetic_algorithm']['offspring_count'],
+    config['genetic_algorithm']['selection']['parents']['method1'],
+    config['genetic_algorithm']['selection']['parents']['method1_proportion'] * 100,
+    config['genetic_algorithm']['selection']['parents']['method2'],
+    (1 - config['genetic_algorithm']['selection']['parents']['method1_proportion']) * 100,
+    config['genetic_algorithm']['crossover']['type'],
+    config['genetic_algorithm']['crossover']['rate'],
+    config['genetic_algorithm']['mutation']['type'],
+    config['genetic_algorithm']['mutation']['rate'],
+    config['genetic_algorithm']['mutation']['uniform'],
+    config['genetic_algorithm']['selection']['replacement']['method1'],
+    config['genetic_algorithm']['selection']['replacement']['method1_proportion'] * 100,
+    config['genetic_algorithm']['selection']['replacement']['method2'],
+    (1 - config['genetic_algorithm']['selection']['replacement']['method1_proportion']) * 100,
+    config['genetic_algorithm']['replacement_method'],
+    config['genetic_algorithm']['stop_criteria']['max_generations'],
+    config['genetic_algorithm']['stop_criteria']['content'],
+    config['genetic_algorithm']['stop_criteria']['optimal_fitness'],
+    config['genetic_algorithm']['character_class'],
+    config['genetic_algorithm']['total_points'],
+    config['genetic_algorithm']['time_limit']
+)
 
-plt.xlabel('Generation', fontsize=14)
-plt.ylabel('Shannon Index', fontsize=14)
-plt.title(f'Shannon Index for Attributes in Simulation {simulation_to_plot}', fontsize=16)
-plt.xticks(rotation=45)
+
+# Graficar la varianza de cada atributo por generación
+plt.figure(figsize=(16, 8))
+for column in diversity.columns:
+    plt.plot(diversity.index, diversity[column], marker='o', label=column)
+
+plt.title(f'Varianza de Atributos por Generación (Simulación {closest_simulation})')
+plt.xlabel('Generación')
+plt.ylabel('Varianza')
 plt.legend()
 plt.grid(True)
-plt.gca().set_facecolor('white')
-plt.tight_layout()
+
+# Ajustar el espacio para el texto de configuración
+plt.subplots_adjust(right=0.75)
+
+# Agregar la configuración al gráfico
+plt.gcf().text(0.79, 0.5, config_text, fontsize=10, ha='left', va='center', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+
 plt.show()
-
-print(f"The simulation closest to the global fitness is {simulation_to_plot}")
-
-
-

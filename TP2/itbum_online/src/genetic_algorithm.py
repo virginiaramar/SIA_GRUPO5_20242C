@@ -4,6 +4,7 @@ from typing import List, Tuple, Callable
 from src.character import Character
 from src.eve import EVE
 import time
+import numpy as np
 
 class GeneticAlgorithm:
     def __init__(self, config: dict):
@@ -12,9 +13,7 @@ class GeneticAlgorithm:
         self.offspring_count = config['offspring_count']  # Nuevo parámetro añadido
         self.crossover_type = config['crossover']['type']
         self.crossover_rate = config['crossover']['rate']
-        self.mutation_type = config['mutation']['type']
-        self.mutation_rate = config['mutation']['rate']
-        self.mutation_method = config['mutation']['method']
+        self.mutation_config = config['mutation']
         self.parent_selection = self.get_selection_method(config['selection']['parents'])
         self.replacement_selection = self.get_selection_method(config['selection']['replacement'])
         self.stop_criteria = config['stop_criteria']
@@ -299,44 +298,46 @@ class GeneticAlgorithm:
         return child1, child2
     
     def mutate(self, population: List[Character]) -> List[Character]:
-        if self.mutation_type == 'gen':
-            if (self.mutation_method == 'non_uniform'):
-                self.non_uniform_mutation()
-            return self.gene_mutation(population)
-        elif self.mutation_type == 'multigen':
-            if (self.mutation_method == 'non_uniform'):
-                self.non_uniform_mutation()
-            return self.multigen_mutation(population)
+        mutation_type = self.mutation_config['type']
+        mutation_rate = self.mutation_config['rate']
+        is_uniform = self.mutation_config['uniform']
+
+        if not is_uniform:
+            mutation_rate = self.non_uniform_mutation_rate()
+
+        if mutation_type == 'gen':
+            return self.gene_mutation(population, mutation_rate)
+        elif mutation_type == 'multigen':
+            return self.multigen_mutation(population, mutation_rate)
         else:
-            raise ValueError(f"Invalid mutation type: {self.mutation_type}")
+            raise ValueError(f"Invalid mutation type: {mutation_type}")
 
-    def non_uniform_mutation(self):
-        self.mutation_rate *= 0.99
-
-    def gene_mutation(self, population: List[Character]) -> List[Character]:
+    def gene_mutation(self, population: List[Character], mutation_rate: float) -> List[Character]:
         for character in population:
-            if random.random() < self.mutation_rate:
+            if random.random() < mutation_rate:
                 genotype = character.get_genotype()
                 index = random.randint(0, len(genotype) - 1)
                 genotype[index] = self.mutate_gene(genotype[index], index)
                 character = Character.from_genotype(genotype, character.class_index, self.total_points)
         return population
 
-    def multigen_mutation(self, population: List[Character]) -> List[Character]:
+    def multigen_mutation(self, population: List[Character], mutation_rate: float) -> List[Character]:
         for character in population:
             genotype = character.get_genotype()
             for i in range(len(genotype)):
-                if random.random() < self.mutation_rate:
+                if random.random() < mutation_rate:
                     genotype[i] = self.mutate_gene(genotype[i], i)
             character = Character.from_genotype(genotype, character.class_index, self.total_points)
         return population
 
+    def non_uniform_mutation_rate(self) -> float:
+        return self.mutation_config['rate'] * (1 - self.generation / self.stop_criteria['max_generations'])
 
     def mutate_gene(self, gene: float, index: int) -> float:
         if index < 5:  # Items
-            return max(0, gene + random.uniform(-50, 50))
+            return max(0, gene + random.uniform(-10, 10))
         elif index == 5:  # Height
-            return max(1.3, min(2.0, gene + random.uniform(-0.5, 0.5)))
+            return max(1.3, min(2.0, gene + random.uniform(-0.1, 0.1)))
         else:  # No mutation for class
             return gene
         
@@ -383,6 +384,8 @@ class GeneticAlgorithm:
                     'generation': self.generation,
                     'best_fitness': current_best.get_performance(),
                     'average_fitness': avg_fitness,
+                    'best_character': current_best,
+                    'variance_attrib': self.calculate_genetic_diversity(population)
                 })
             
             print(f"Generation {self.generation}: Best Fitness = {current_best.get_performance():.4f}, Avg Fitness = {avg_fitness:.4f}")
@@ -436,3 +439,37 @@ class GeneticAlgorithm:
         
     def get_generation_history(self):
         return self.generation_history
+    
+    def calculate_genetic_diversity(self,population: List[Character]) -> dict:
+        # Verificar que la población no esté vacía
+        if not population:
+            raise ValueError("La población está vacía.")
+        
+        # Inicializar listas para almacenar los atributos
+        attributes = {
+            "strength": [],
+            "agility": [],
+            "expertise": [],
+            "endurance": [],
+            "health": [],
+            "height": []
+        }
+        
+        # Extraer los atributos de cada Character en la población
+        for character in population:
+            items = character.items
+            attributes["strength"].append(items.get("strength", 0))
+            attributes["agility"].append(items.get("agility", 0))
+            attributes["expertise"].append(items.get("expertise", 0))
+            attributes["endurance"].append(items.get("endurance", 0))
+            attributes["health"].append(items.get("health", 0))
+            attributes["height"].append(character.height)
+        
+        # Calcular la varianza de cada atributo
+        diversity = {}
+        for key in attributes:
+            # Convertir a array numpy para calcular la varianza
+            attr_array = np.array(attributes[key])
+            diversity[key] = np.var(attr_array, ddof=1)  # ddof=1 para varianza muestral
+
+        return diversity

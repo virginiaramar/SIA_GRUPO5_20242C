@@ -7,9 +7,9 @@
       "rate": 0.8
     },
     "mutation": {
-      "type": "multigen",
-      "rate": 0.2,
-      "method": "non_uniform"
+      "type": "gen",
+      "rate": 0.01,
+      "uniform": true
     },
     "selection": {
       "parents": {
