@@ -8,15 +8,15 @@ def generate_hybrid_selection_configs():
             "population_size": 100,
             "offspring_count": 50,
             "crossover": {
-                "type": "one_point",
-                "rate": 0.6
+                "type": "two_point",
+                "rate": 0.8
             },
             "mutation": {
-                "type": "gen",
-                "rate": 0.01,
+                "type": "multigen",
+                "rate": 0.02,
                 "uniform": True
             },
-            "replacement_method": "traditional",
+            "replacement_method": "young_bias",
             "stop_criteria": {
                 "max_generations": 300,
                 "structure": 0.01,

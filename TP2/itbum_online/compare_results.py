@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 
+pd.set_option('display.max_colwidth', None)
+
 def get_average_best_fitness_for_last_generation(file_path):
     """Calculates the average best fitness for the last generation of each simulation in a CSV file."""
     try:
