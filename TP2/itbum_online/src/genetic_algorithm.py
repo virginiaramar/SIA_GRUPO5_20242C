@@ -14,6 +14,7 @@ class GeneticAlgorithm:
         self.crossover_rate = config['crossover']['rate']
         self.mutation_type = config['mutation']['type']
         self.mutation_rate = config['mutation']['rate']
+        self.mutation_method = config['mutation']['method']
         self.parent_selection = self.get_selection_method(config['selection']['parents'])
         self.replacement_selection = self.get_selection_method(config['selection']['replacement'])
         self.stop_criteria = config['stop_criteria']
@@ -24,6 +25,8 @@ class GeneticAlgorithm:
         self.time_limit = config['time_limit']
         self.start_time = time.time()
         self.tournament_config = config['selection']['tournament']
+        self.heuristic_enabled = config.get('heuristic_enabled', False)  
+
 
 
     def initialize_population(self) -> List[Character]:
@@ -33,6 +36,11 @@ class GeneticAlgorithm:
             height = random.uniform(1.3, 2.0)
             class_index = self.fixed_class
             character = Character(items, height, class_index, self.total_points)
+
+            if self.heuristic_enabled:
+                character = self.apply_heuristic(character)
+
+
             population.append(character)
         return population
     
@@ -292,15 +300,18 @@ class GeneticAlgorithm:
     
     def mutate(self, population: List[Character]) -> List[Character]:
         if self.mutation_type == 'gen':
+            if (self.mutation_method == 'non_uniform'):
+                self.non_uniform_mutation()
             return self.gene_mutation(population)
-        elif self.mutation_type == 'limited_multigen':
-            return self.limited_multigen_mutation(population)
-        elif self.mutation_type == 'uniform_multigen':
-            return self.uniform_multigen_mutation(population)
-        elif self.mutation_type == 'complete':
-            return self.complete_mutation(population)
+        elif self.mutation_type == 'multigen':
+            if (self.mutation_method == 'non_uniform'):
+                self.non_uniform_mutation()
+            return self.multigen_mutation(population)
         else:
             raise ValueError(f"Invalid mutation type: {self.mutation_type}")
+
+    def non_uniform_mutation(self):
+        self.mutation_rate *= 0.99
 
     def gene_mutation(self, population: List[Character]) -> List[Character]:
         for character in population:
@@ -311,18 +322,7 @@ class GeneticAlgorithm:
                 character = Character.from_genotype(genotype, character.class_index, self.total_points)
         return population
 
-    def limited_multigen_mutation(self, population: List[Character]) -> List[Character]:
-        for character in population:
-            if random.random() < self.mutation_rate:
-                genotype = character.get_genotype()
-                M = random.randint(1, len(genotype))
-                indices = random.sample(range(len(genotype)), M)
-                for index in indices:
-                    genotype[index] = self.mutate_gene(genotype[index], index)
-                character = Character.from_genotype(genotype, character.class_index, self.total_points)
-        return population
-
-    def uniform_multigen_mutation(self, population: List[Character]) -> List[Character]:
+    def multigen_mutation(self, population: List[Character]) -> List[Character]:
         for character in population:
             genotype = character.get_genotype()
             for i in range(len(genotype)):
@@ -331,14 +331,6 @@ class GeneticAlgorithm:
             character = Character.from_genotype(genotype, character.class_index, self.total_points)
         return population
 
-    def complete_mutation(self, population: List[Character]) -> List[Character]:
-        for character in population:
-            if random.random() < self.mutation_rate:
-                genotype = character.get_genotype()
-                for i in range(len(genotype)):
-                    genotype[i] = self.mutate_gene(genotype[i], i)
-                character = Character.from_genotype(genotype, character.class_index, self.total_points)
-        return population
 
     def mutate_gene(self, gene: float, index: int) -> float:
         if index < 5:  # Items

@@ -59,6 +59,8 @@ def save_all_simulations_to_csv(history, best_character, filename, sim_num, appe
     except Exception as e:
         print(f"Error saving data for simulation {sim_num}: {e}")
 
+        
+
 def main():
     parser = argparse.ArgumentParser(description='ITBUM ONLINE Character Optimizer - Multiple Simulations')
     parser.add_argument('--history', action='store_true', help='Show generation history for each simulation')
