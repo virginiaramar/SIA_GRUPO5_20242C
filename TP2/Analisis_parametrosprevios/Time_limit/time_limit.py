@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import json
 
 # Lista de nombres de archivos CSV y sus tamaños de población
-files = ['cont_0.02.csv', 'cont_0.05.csv', 'cont_0.005.csv']
-simulation_names = ['Content of 0.02', 'Content of 0.05', 'Content of 0.005']
-colors = ['blue', 'green', 'purple']  # Agregar más colores si es necesario
+files = ['Time_10.csv', 'Time_120.csv', 'Time_1800.csv']
+simulation_names = ['Time Limit of 10',  'Time Limit of 120', 'Time Limit of 1800']
+colors = ['blue', 'green', 'purple'] 
 
 
 # Crear la figura
@@ -48,7 +48,7 @@ for i, (file, name, color) in enumerate(zip(files, simulation_names, colors)):
 # Configurar etiquetas y leyenda
 ax.set_xlabel('Simulation', fontsize=14)
 ax.set_ylabel('Fitness', fontsize=14)
-ax.set_title('Fitness Range of Last Generation per Simulation for Different Stop Criteria for Content', fontsize=16)
+ax.set_title('Fitness Range of Last Generation per Simulation for Different Time Limits', fontsize=16)
 ax.tick_params(axis='x', rotation=45)
 
 # Ajustar el espacio para la leyenda y el texto de configuración
