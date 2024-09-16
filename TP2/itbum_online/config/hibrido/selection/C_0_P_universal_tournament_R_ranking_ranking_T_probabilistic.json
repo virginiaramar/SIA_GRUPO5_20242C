@@ -13,9 +13,9 @@
         },
         "replacement_method": "young_bias",
         "stop_criteria": {
-            "max_generations": 300,
-            "structure": 0.01,
-            "content": 0.01,
+            "max_generations": 100,
+            "structure": 0.05,
+            "content": 0.05,
             "optimal_fitness": 100
         },
         "character_class": 0,
@@ -25,12 +25,12 @@
             "parents": {
                 "method1": "universal",
                 "method2": "tournament",
-                "method1_proportion": 0.2
+                "method1_proportion": 0.5
             },
             "replacement": {
                 "method1": "ranking",
                 "method2": "ranking",
-                "method1_proportion": 0.3
+                "method1_proportion": 0.5
             },
             "tournament": {
                 "type": "probabilistic",

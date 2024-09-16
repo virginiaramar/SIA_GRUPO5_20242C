@@ -9,7 +9,7 @@ def get_average_best_fitness_for_last_generation(file_path):
         df = pd.read_csv(file_path)
         
         # Group by 'Simulation' and get the best fitness of the last generation for each simulation
-        last_generation_best_fitness = df.groupby('Simulation').apply(
+        last_generation_best_fitness = df.groupby('Simulation', group_keys=False).apply(
             lambda x: x.loc[x['Generation'].idxmax(), 'Best Fitness']
         )
         
@@ -40,11 +40,14 @@ def process_csv_folder(directory):
     # Remove duplicates and find top 10 and bottom 10 unique files
     unique_results_df = results_df.drop_duplicates(subset=['File', 'Average Best Fitness'])
 
-    # Find top 10 files with the highest average fitness
-    best_files = unique_results_df.nlargest(10, 'Average Best Fitness')
+    # Determine how many files to select for best and worst, ensuring we don't exceed the number of available files
+    num_files_to_select = min(10, len(unique_results_df))
     
-    # Find top 10 files with the lowest average fitness
-    worst_files = unique_results_df.nsmallest(10, 'Average Best Fitness')
+    # Find top files with the highest average fitness
+    best_files = unique_results_df.nlargest(num_files_to_select, 'Average Best Fitness')
+    
+    # Find top files with the lowest average fitness
+    worst_files = unique_results_df.nsmallest(num_files_to_select, 'Average Best Fitness')
     
     return best_files, worst_files
 
@@ -52,10 +55,10 @@ def main():
     directory = 'output/hibrido/selection'  # Path to your folder containing CSV files
     best_files, worst_files = process_csv_folder(directory)
     
-    print("Top 10 files with the best average fitness:")
+    print("Top files with the best average fitness:")
     print(best_files)
     
-    print("\nTop 10 files with the worst average fitness:")
+    print("\nTop files with the worst average fitness:")
     print(worst_files)
 
 if __name__ == "__main__":

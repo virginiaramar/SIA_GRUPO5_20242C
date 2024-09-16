@@ -18,9 +18,9 @@ def generate_hybrid_selection_configs():
             },
             "replacement_method": "young_bias",
             "stop_criteria": {
-                "max_generations": 300,
-                "structure": 0.01,
-                "content": 0.01,
+                "max_generations": 100,
+                "structure": 0.05,
+                "content": 0.05,
                 "optimal_fitness": 100
             },
             "character_class": 0,
@@ -35,8 +35,8 @@ def generate_hybrid_selection_configs():
     # Tournament and Boltzmann settings
     tournament_types = ['deterministic', 'probabilistic']
     boltzmann_settings = {
-        "Tmin": 0.5,
-        "Tmax": 2.0,
+        "Tmin": 0.1,
+        "Tmax": 3.0,
         "k": 0.1
     }
     
@@ -55,12 +55,12 @@ def generate_hybrid_selection_configs():
                         "parents": {
                             "method1": parent_method1,
                             "method2": parent_method2,
-                            "method1_proportion": 0.2
+                            "method1_proportion": 0.5
                         },
                         "replacement": {
                             "method1": replacement_method1,
                             "method2": replacement_method2,
-                            "method1_proportion": 0.3
+                            "method1_proportion": 0.5
                         },
                         "tournament": {
                             "type": "placeholder",  # Placeholder for tournament
