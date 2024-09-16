@@ -125,7 +125,7 @@ def main():
                         history = ga.get_generation_history()
                         # Save the history and best character to the CSV file
                         save_all_simulations_to_csv(history, best_character, csv_filename, sim_num, time_taken, stop_reason, append=(sim_num > 1))
-                        visualize_progress(history, best_character.get_class_name(), sim_num)
+                        # visualize_progress(history, best_character.get_class_name(), sim_num)
 
                     print(f"Simulation {sim_num} finished: {stop_reason}")
 
