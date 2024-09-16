@@ -80,7 +80,7 @@ def main():
     args = parser.parse_args()
 
     # YOU MUST CHANGE THE DIRECTORY WITH THE PATH FOR THE RUN
-    folder_to_analize = 'hibrido/selection'
+    folder_to_analize = 'hibrido/replacement'
 
     # Define the config directory
     config_folder = 'config/' + folder_to_analize

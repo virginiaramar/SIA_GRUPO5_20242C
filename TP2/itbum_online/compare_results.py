@@ -52,7 +52,7 @@ def process_csv_folder(directory):
     return best_files, worst_files
 
 def main():
-    directory = 'output/hibrido/selection'  # Path to your folder containing CSV files
+    directory = 'output/hibrido/replacement'  # Path to your folder containing CSV files
     best_files, worst_files = process_csv_folder(directory)
     
     print("Top files with the best average fitness:")

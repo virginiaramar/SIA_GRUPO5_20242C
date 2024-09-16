@@ -8,18 +8,18 @@ def generate_replacement_variants():
             "population_size": 100,
             "offspring_count": 50,
             "crossover": {
-                "type": "one_point",
-                "rate": 0.3
+                "type": "uniform",
+                "rate": 0.9
             },
             "mutation": {
-                "type": "gen",
-                "rate": 0.01,
+                "type": "multigen",
+                "rate": 0.04,
                 "uniform": True
             },
             "stop_criteria": {
-                "max_generations": 300,
-                "structure": 0.01,
-                "content": 0.01,
+                "max_generations": 100,
+                "structure": 0.05,
+                "content": 0.05,
                 "optimal_fitness": 100
             },
             "character_class": 0,
@@ -31,13 +31,13 @@ def generate_replacement_variants():
     # Fixed selection methods
     selection_config = {
         "parents": {
-            "method1": "elite",
-            "method2": "roulette",
+            "method1": "universal",
+            "method2": "ranking",
             "method1_proportion": 0.5
         },
         "replacement": {
-            "method1": "elite",
-            "method2": "roulette",
+            "method1": "roulette",
+            "method2": "elite",
             "method1_proportion": 0.5
         },
         "tournament": {
@@ -46,12 +46,11 @@ def generate_replacement_variants():
             "threshold": 0.0
         },
         "boltzmann": {
-            "Tmin": 0.0,
-            "Tmax": 0.0,
-            "k": 0.0
+            "Tmin": 0.1,
+            "Tmax": 3.0,
+            "k": 0.1
         }
     }
-
     # Replacement methods
     replacement_methods = ['traditional', 'young_bias']
 
