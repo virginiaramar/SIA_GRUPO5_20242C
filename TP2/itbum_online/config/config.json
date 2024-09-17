@@ -1,7 +1,7 @@
 {
   "genetic_algorithm": {
     "population_size": 100,
-    "offspring_count": 80,
+    "offspring_count": 90,
     "crossover": {
       "type": "two_point",
       "rate": 0.8
@@ -36,14 +36,15 @@
       }
     },
     "replacement_method": "young_bias",
-    "stop_criteria": {
-      "max_generations": 100,
-      "structure": 0.01,
+    "stop_criteria": 
+    {
+      "max_generations": 1000,
+      "structure": 0.005,
       "content": 0.01,
       "optimal_fitness": 100.0
     },
-    "character_class": null,
+    "character_class": 0,
     "total_points": 200,
-    "time_limit": 60
+    "time_limit": 1800
   }
 }

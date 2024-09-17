@@ -8,8 +8,6 @@ import sys
 import random
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-
-
 def visualize_progress(history, character_class):
     if not history:
         print("No hay datos de generaciones para visualizar.")
@@ -18,10 +16,6 @@ def visualize_progress(history, character_class):
     generations = [g['generation'] for g in history]
     best_fitnesses = [g['best_fitness'] for g in history]
     avg_fitnesses = [g['average_fitness'] for g in history]
-
-    print("Generations:", generations)
-    print("Best Fitnesses:", best_fitnesses)
-    print("Avg Fitnesses:", avg_fitnesses)
 
     plt.figure(figsize=(12, 6))
     if len(generations) == 1:
@@ -52,7 +46,7 @@ def print_generation_history(history):
 
 def enhanced_pygame_visualize(ga):
     pygame.init()
-    WIDTH, HEIGHT = 1200, 700  # Tamaño más compacto
+    WIDTH, HEIGHT = 1200, 700
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Visualización del Algoritmo Genético - ITBUM ONLINE")
     clock = pygame.time.Clock()
@@ -73,22 +67,22 @@ def enhanced_pygame_visualize(ga):
             self.x = x
             self.y = y
             self.color = character_to_color(character)
-            self.size = max(5, min(15, int(5 + character.get_performance() * 2)))
+            self.size = max(3, min(10, int(3 + character.get_performance())))
             self.index = index
             self.selected = False
 
         def draw(self, screen):
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
             if self.selected:
-                pygame.draw.circle(screen, (255, 255, 255), (int(self.x), int(self.y)), self.size + 2, 1)
+                pygame.draw.circle(screen, (255, 255, 255), (int(self.x), int(self.y)), self.size + 1, 1)
             text = font_small.render(str(self.index), True, (255, 255, 255))
             screen.blit(text, (self.x - text.get_width() // 2, self.y - text.get_height() // 2))
 
     def create_sprite_grid(characters, start_x, start_y, cols):
         sprites = []
         for i, character in enumerate(characters):
-            x = start_x + (i % cols) * 30
-            y = start_y + (i // cols) * 30
+            x = start_x + (i % cols) * 20
+            y = start_y + (i // cols) * 20
             sprites.append(CharacterSprite(character, x, y, i))
         return sprites
 
@@ -99,7 +93,7 @@ def enhanced_pygame_visualize(ga):
             screen.blit(rendered_text, (x, y + i * font.get_linesize()))
 
     def draw_fitness_graph(history):
-        plt.figure(figsize=(4, 2))
+        plt.figure(figsize=(6, 4))
         generations = [g['generation'] for g in history]
         best_fitnesses = [g['best_fitness'] for g in history]
         avg_fitnesses = [g['average_fitness'] for g in history]
@@ -115,10 +109,10 @@ def enhanced_pygame_visualize(ga):
         raw_data = renderer.tostring_rgb()
         size = canvas.get_width_height()
         surf = pygame.image.fromstring(raw_data, size, "RGB")
-        screen.blit(surf, (WIDTH - size[0] - 10, 10))
+        screen.blit(surf, (WIDTH - size[0] - 20, 60))
         plt.close()
 
-    population_sprites = create_sprite_grid(ga.initialize_population(), 20, 60, 20)
+    population_sprites = create_sprite_grid(ga.initialize_population(), 20, 100, 20)
     generation = 0
     history = []
 
@@ -130,15 +124,12 @@ def enhanced_pygame_visualize(ga):
 
         screen.fill((0, 0, 0))
 
-        # Título y generación actual
         draw_text(f"Generación {generation}", 20, 20, font_large)
-
-        # Población actual
-        draw_text("Población:", 20, 60, font_medium)
+        draw_text("Población:", 20, 70, font_medium)
+        
         for sprite in population_sprites:
             sprite.draw(screen)
 
-        # Selección
         parents = ga.parent_selection([sprite.character for sprite in population_sprites], ga.offspring_count)
         selected_indices = []
         for parent in parents:
@@ -147,22 +138,13 @@ def enhanced_pygame_visualize(ga):
                     sprite.selected = True
                     selected_indices.append(i)
                     break
-        draw_text(f"Selección: {len(parents)} padres", 20, HEIGHT - 120, font_medium)
-        draw_text(f"Índices: {', '.join(map(str, selected_indices[:10]))}{'...' if len(selected_indices) > 10 else ''}", 20, HEIGHT - 90, font_small)
 
-        # Cruce y Mutación
         offspring = []
         for i in range(0, len(parents), 2):
             if i + 1 < len(parents):
                 child1, child2 = ga.crossover(parents[i], parents[i+1])
                 offspring.extend([ga.mutate([child1])[0], ga.mutate([child2])[0]])
         
-        offspring_sprites = create_sprite_grid(offspring, WIDTH - 250, 60, 10)
-        draw_text(f"Descendencia: {len(offspring)}", WIDTH - 250, 30, font_medium)
-        for sprite in offspring_sprites:
-            sprite.draw(screen)
-
-        # Reemplazo
         if ga.config['replacement_method'] == 'young_bias':
             if len(offspring) > ga.population_size:
                 new_population = ga.replacement_selection(offspring, ga.population_size)
@@ -176,28 +158,27 @@ def enhanced_pygame_visualize(ga):
             new_population = ga.replacement_selection(combined, ga.population_size)
             description = "Reemplazo: Tradicional (mejores de padres e hijos)"
 
-        draw_text(description, 20, HEIGHT - 60, font_small)
+        population_sprites = create_sprite_grid(new_population, 20, 100, 20)
 
-        population_sprites = create_sprite_grid(new_population, 20, 60, 20)
-
-        # Estadísticas
         best_fitness = max(sprite.character.get_performance() for sprite in population_sprites)
         avg_fitness = sum(sprite.character.get_performance() for sprite in population_sprites) / len(population_sprites)
         history.append({'generation': generation, 'best_fitness': best_fitness, 'average_fitness': avg_fitness})
         
+        draw_text(f"Selección: {len(parents)} padres", 20, HEIGHT - 100, font_medium)
+        draw_text(f"Índices: {', '.join(map(str, selected_indices[:10]))}{'...' if len(selected_indices) > 10 else ''}", 20, HEIGHT - 70, font_small)
+        draw_text(description, 20, HEIGHT - 40, font_small)
         draw_text(f"Mejor Fitness: {best_fitness:.4f}", WIDTH - 250, HEIGHT - 60, font_medium)
         draw_text(f"Promedio: {avg_fitness:.4f}", WIDTH - 250, HEIGHT - 30, font_medium)
 
         draw_fitness_graph(history)
 
         pygame.display.flip()
-        clock.tick(2)  # 2 FPS para dar tiempo a observar, pero no demasiado lento
+        clock.tick(2)
 
         generation += 1
 
     pygame.quit()
     return max([sprite.character for sprite in population_sprites], key=lambda x: x.get_performance())
-
 
 def main():
     parser = argparse.ArgumentParser(description='ITBUM ONLINE Character Optimizer')
