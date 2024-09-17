@@ -1,0 +1,50 @@
+{
+  "genetic_algorithm": {
+    "population_size": 100,
+    "offspring_count": 90,
+    "crossover": {
+      "type": "two_point",
+      "rate": 0.8
+    },
+    "mutation": {
+      "type": "gen",
+      "rate": 0.01,
+      "uniform": true
+    },
+    "selection": {
+      "parents": {
+        "method1": "tournament",
+        "method2": "roulette",
+        "method1_proportion": 0.7,
+        "exclusive_selection": true
+      },
+      "replacement": {
+        "method1": "elite",
+        "method2": "ranking",
+        "method1_proportion": 0.2,
+        "exclusive_selection": true
+      },
+      "boltzmann": {
+        "Tmin": 0.5,
+        "Tmax": 2.0,
+        "k": 0.1
+      },
+      "tournament": {
+        "type": "deterministic",
+        "m": 5,
+        "threshold": 0.75
+      }
+    },
+    "replacement_method": "young_bias",
+    "stop_criteria": 
+    {
+      "max_generations": 1000,
+      "structure": 0.005,
+      "content": 0.01,
+      "optimal_fitness": 100.0
+    },
+    "character_class": 0,
+    "total_points": 200,
+    "time_limit": 1800
+  }
+}
