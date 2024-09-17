@@ -335,13 +335,13 @@ class GeneticAlgorithm:
 
     def mutate_gene(self, gene: float, index: int) -> float:
         if index < 5:  # Items
-            return max(0, gene + random.uniform(-10, 10))
+            return max(0, gene + random.uniform(-30,30))
         elif index == 5:  # Height
-            return max(1.3, min(2.0, gene + random.uniform(-0.1, 0.1)))
+            return max(1.3, min(2.0, gene + random.uniform(-0.2, 0.2)))
         else:  # No mutation for class
             return gene
         
-    def evolve(self) -> Character:
+    def evolve(self) -> Tuple[Character, str]:
         population = self.initialize_population()
         best_fitness = float('-inf')
         self.generation_history = []
@@ -404,38 +404,29 @@ class GeneticAlgorithm:
                 print(f"Tiempo límite alcanzado después de {self.generation} generaciones.")
                 break
             
-            if self.should_stop(population, best_fitness):
-                break
+        
 
+            stop, reason = self.should_stop(population, best_fitness)
+            if stop:
+                stop_reason = reason
+                print(stop_reason)
+                break
         print(f"Evolution completed after {self.generation} generations.")
         print(f"Total generations recorded: {len(self.generation_history)}")
-        return max(population, key=lambda x: x.get_performance())
+        return max(population, key=lambda x: x.get_performance()), stop_reason
 
     def should_stop(self, population: List[Character], best_fitness: float) -> bool:
         # Criterio 1: Máxima cantidad de generaciones
         if self.generation >= self.stop_criteria['max_generations']:
             print(f"Stopping: Maximum number of generations ({self.stop_criteria['max_generations']}) reached.")
-            return True
-
-        # Criterio 2: Estructura (convergencia de la población)
-        fitnesses = [c.get_performance() for c in population]
-        avg_fitness = sum(fitnesses) / len(fitnesses)
-        max_fitness = max(fitnesses)
-        if (max_fitness - avg_fitness) / avg_fitness < self.stop_criteria['structure']:
-            print(f"Stopping: Population structure converged. Difference: {(max_fitness - avg_fitness) / avg_fitness:.4f}")
-            return True
-
-        # Criterio 3: Contenido (estancamiento del mejor fitness)
-        if (best_fitness - avg_fitness) / avg_fitness < self.stop_criteria['content']:
-            print(f"Stopping: Best fitness stagnated. Difference: {(best_fitness - avg_fitness) / avg_fitness:.4f}")
-            return True
+            return True, f"Maximum number of generations ({self.stop_criteria['max_generations']}) reached."
 
         # Criterio 4: Entorno a un óptimo
         if best_fitness >= self.stop_criteria['optimal_fitness']:
             print(f"Stopping: Optimal fitness reached. Best fitness: {best_fitness:.4f}")
-            return True
+            return True, f"Optimal fitness reached. Best fitness: {best_fitness:.4f}"
 
-        return False
+        return False, ""
         
     def get_generation_history(self):
         return self.generation_history

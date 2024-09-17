@@ -99,7 +99,7 @@ ax.tick_params(axis='x', rotation=45)
 plt.subplots_adjust(right=0.65)  # Ajustar el margen derecho para dejar espacio
 
 # Colocar la leyenda fuera del gráfico a la derecha y abajo
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))  # Mover la leyenda más abajo, ajustando 'bbox_to_anchor'
+ax.legend(loc='upper left', bbox_to_anchor=(1, 0.9))  # Mover la leyenda más abajo, ajustando 'bbox_to_anchor'
 
 # Agregar la configuración al gráfico en un área de texto separada
 #fig.text(0.75, 0.4, config_text, fontsize=10, ha='left', va='center', bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))

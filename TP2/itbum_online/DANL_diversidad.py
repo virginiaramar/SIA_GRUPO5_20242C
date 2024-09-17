@@ -3,16 +3,17 @@ import matplotlib.pyplot as plt
 import json
 
 # Leer el archivo CSV
-df = pd.read_csv('simulations_warrior.csv')
+df = pd.read_csv('hibrido_mage.csv')
 
-# Calcular el promedio del fitness total global por simulación
-average_fitness_per_simulation = df.groupby('Simulation')['Total Points'].mean()
+simulation_name = 'Mage'
+# Obtener el "Best Fitness" de la última generación para cada simulación
+last_gen_best_fitness = df[df['Generation'] == df['Generation'].max()].groupby('Simulation')['Best Fitness'].max()
 
-# Calcular el promedio global del fitness total
-global_average_fitness = average_fitness_per_simulation.mean()
+# Calcular el promedio del "Best Fitness" de la última generación para todas las simulaciones
+global_average_fitness = last_gen_best_fitness.mean()
 
-# Encontrar la simulación con el promedio de fitness más cercano al promedio global
-closest_simulation = average_fitness_per_simulation.sub(global_average_fitness).abs().idxmin()
+# Encontrar la simulación con el "Best Fitness" más cercano al promedio global
+closest_simulation = last_gen_best_fitness.sub(global_average_fitness).abs().idxmin()
 
 # Filtrar los datos para la simulación seleccionada
 df_selected_simulation = df[df['Simulation'] == closest_simulation]
@@ -32,9 +33,8 @@ print(f"Simulación seleccionada: {closest_simulation}")
 print(diversity)
 
 # Configuración del algoritmo genético
-with open('config\config.json', 'r') as f:
+with open('config/config.json', 'r') as f:
     config = json.load(f)
-
 
 config_text = (
     "$Population Size:$ {}\n"
@@ -75,15 +75,14 @@ config_text = (
     config['genetic_algorithm']['time_limit']
 )
 
-
 # Graficar la varianza de cada atributo por generación
 plt.figure(figsize=(16, 8))
 for column in diversity.columns:
     plt.plot(diversity.index, diversity[column], marker='o', label=column)
 
-plt.title(f'Varianza de Atributos por Generación (Simulación {closest_simulation})')
-plt.xlabel('Generación')
-plt.ylabel('Varianza')
+plt.title(f'Diversity of Best Fitness by Generation for the Best Combination of {simulation_name} for Simulation {closest_simulation}')
+plt.xlabel('Generation')
+plt.ylabel('Variance')
 plt.legend()
 plt.grid(True)
 

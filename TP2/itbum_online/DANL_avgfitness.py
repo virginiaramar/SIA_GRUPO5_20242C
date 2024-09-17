@@ -47,8 +47,8 @@ config_text = (
 )
 
 # Lista de nombres de archivos CSV y nombres de simulaciones correspondientes
-files = ['simulations_warrior.csv', 'simulations_archer.csv', 'simulations_guardian.csv', 'simulations_mage.csv']
-simulation_names = ['Warrior', 'Archer', 'Guardian', 'Mage']
+files = ['HIBRIDO1.csv']
+simulation_names = ['Warrior']
 
 # Crear gráficos para cada archivo CSV
 for file, name in zip(files, simulation_names):
