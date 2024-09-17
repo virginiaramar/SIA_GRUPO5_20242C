@@ -1,25 +1,25 @@
 {
   "genetic_algorithm": {
-    "population_size": 100,
+    "population_size": 1000,
     "offspring_count": 50,
     "crossover": {
-      "type": "uniform",
-      "rate": 0.7
+      "type": "two_point",
+      "rate": 0.8
     },
     "mutation": {
       "type": "multigen",
-      "rate": 0.9,
-      "uniform": false
+      "rate": 0.02,
+      "uniform": true
     },
     "selection": {
       "parents": {
-        "method1": "universal",
-        "method2": "elite",
+        "method1": "elite",
+        "method2": "universal",
         "method1_proportion": 0.5
       },
       "replacement": {
-        "method1": "roulette",
-        "method2": "roulette",
+        "method1": "ranking",
+        "method2": "universal",
         "method1_proportion": 0.5
       },
       "boltzmann": {
@@ -33,13 +33,15 @@
         "threshold": 0.75
       }
     },
-    "replacement_method": "young_bias",
+    "replacement_method": "traditional",
     "stop_criteria": {
-      "max_generations": 100000,
+      "max_generations": 40,
+      "structure":0.01,
+      "content":0.01,
       "optimal_fitness": 100.0
     },
-    "character_class": 3,
+    "character_class": 0,
     "total_points": 200,
-    "time_limit": 1800
+    "time_limit": 120
   }
 }

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import json
 
 # Leer el archivo CSV
-df = pd.read_csv('hibrido_mage.csv')
+df = pd.read_csv('x.csv')
 
 simulation_name = 'Mage'
 # Obtener el "Best Fitness" de la última generación para cada simulación
