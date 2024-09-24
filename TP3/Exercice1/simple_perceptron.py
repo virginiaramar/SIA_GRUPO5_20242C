@@ -10,10 +10,8 @@ class Perceptron:
         return 1 if x >= 0 else -1
 
     def fit(self, X, y, n_epochs=10):
-        print(X)
         # column of 1s to account for the bias
         X = np.c_[X, np.ones((X.shape[0]))]
-        print(X)
         for epoch in range(n_epochs):
             for (x, target) in zip(X, y):
                 p = self.step_activation(np.dot(x, self.W))
