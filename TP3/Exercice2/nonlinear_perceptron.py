@@ -31,6 +31,6 @@ class NonLinearPerceptron:
 
         for x in X:
             pred = tanh(np.dot(x, self.W))
-            # Threshold the sigmoid output at 0.5
+            # Threshold the sigmoid output at 0
             predictions.append(1 if pred >= 0 else -1)
         return np.array(predictions)
