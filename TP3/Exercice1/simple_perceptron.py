@@ -10,7 +10,7 @@ class Perceptron:
     def step_activation(self, x):
         return 1 if x >= 0 else -1
 
-    def fit(self, X, y, n_epochs=10, plot_interval=1, title=""):
+    def fit_with_plot(self, X, y, n_epochs=10, plot_interval=1, title=""):
         X = np.c_[X, np.ones((X.shape[0]))]  # Add column of 1s to account for bias
         for epoch in range(n_epochs):
             for (x, target) in zip(X, y):
@@ -65,8 +65,8 @@ if __name__ == '__main__':
 
     # Train and plot for AND
     perceptron_and = Perceptron(N=2)
-    perceptron_and.fit(X_AND, y_AND, n_epochs=10, plot_interval=1, title="AND Problem")
+    perceptron_and.fit_with_plot(X_AND, y_AND, n_epochs=10, plot_interval=1, title="AND Problem")
 
     # Train and plot for XOR
     perceptron_xor = Perceptron(N=2)
-    perceptron_xor.fit(X_XOR, y_XOR, n_epochs=10, plot_interval=1, title="XOR Problem")
+    perceptron_xor.fit_with_plot(X_XOR, y_XOR, n_epochs=10, plot_interval=1, title="XOR Problem")
