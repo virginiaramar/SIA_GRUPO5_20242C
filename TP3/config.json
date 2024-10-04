@@ -1,0 +1,40 @@
+{
+    "data": {
+        "input": [[0, 0], [0, 1], [1, 0], [1, 1]],
+        "output": [[0], [1], [1], [0]]
+    },
+    "initial_parameters": {
+        "architecture": [2, 2, 1],
+        "learning_rate": 0.1,
+        "epochs": 10000,
+        "mode": "mini-batch",
+        "minibatch_size": 2
+    },
+    "weights": {
+        "initialization": "random"  
+    },
+    "activation_function": {
+        "function": "relu",
+        "use_softmax": false,
+        "beta": 1.0
+    },
+    "error": {
+        "threshold": 0.01  
+    },
+    "optimizer": {
+      "type": "adam", 
+
+      "adaptive_learning_rate": true,
+      "lr_adjustment_value": 0.01,
+
+      "momentum": {
+        "alpha": 0.9
+      },
+      "adam": {
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "epsilon": 1e-8,
+        "alpha": 0.001      
+      }
+    }
+}
