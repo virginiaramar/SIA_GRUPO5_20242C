@@ -1,20 +1,21 @@
 {
     "data": {
         "input": "data/digits_flatten.txt",
-        "output": "data/TP3-ej3b-realoutput.txt"
+        "output": "data/TP3-ej3c-realoutput.txt",
+        "problem_type": "multiclass"
     },
     "initial_parameters": {
-        "architecture": [35, 20, 1],
+        "architecture": [35, 20, 10],
         "learning_rate": 0.1,
         "epochs": 5000,
-        "mode": "batch",
+        "mode": "online",
         "minibatch_size": 2
     },
     "weights": {
-        "initialization": "random"  
+        "initialization": "xavier"  
     },
     "activation_function": {
-        "function": "relu",
+        "function": "tanh",
         "output_function": "sigmoid",
         "beta": 1.0
     },
@@ -22,7 +23,7 @@
         "threshold": 0.001
     },
     "optimizer": {
-      "type": "momentum", 
+      "type": "adam", 
 
       "adaptive_learning_rate": true,
       "lr_adjustment_value": 0.01,

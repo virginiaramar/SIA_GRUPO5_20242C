@@ -7,11 +7,15 @@ import os
 
 class multilayer_perceptron:
     def __init__(self, config_file='config.json'):
+
         # Config data
         with open(config_file) as config_file:
             config = json.load(config_file)
 
       # Get the data from the config and put in variables
+
+        self.problem_type = config['data']['problem_type']
+
         input_source = config['data']['input']
         if isinstance(input_source, str) and input_source.endswith('.txt') and os.path.isfile(input_source):
             # If it is a txt, read it
@@ -28,7 +32,17 @@ class multilayer_perceptron:
         else:
             self.y = np.array(output_source)
 
-        self.y = self.y.reshape(-1, 1)
+        if self.problem_type == 'binary':
+            self.y = self.y.reshape(-1, 1)
+        elif self.problem_type == 'multiclass':
+            
+            if self.y.shape[1] != 10:
+                num_classes = int(np.max(self.y)) + 1
+                y_one_hot = np.zeros((self.y.size, num_classes))
+                y_one_hot[np.arange(self.y.size), self.y.astype(int)] = 1
+                self.y = y_one_hot
+        else:
+            raise ValueError("Invalid problem type. Choose 'binary' or 'multiclass'.")
 
 
             
@@ -256,10 +270,13 @@ class multilayer_perceptron:
     def _back_prop(self, error):
         delta_vec = []
         for i in reversed(range(len(self.weights))):
-            activation_derivative = self._get_activation_derivative(i)
-            derivative = activation_derivative(self.activations[i + 1])
-            
-            delta = error * derivative
+            if i == len(self.weights) - 1 and self.output_function == 'softmax':
+                # Usamos la derivada especial para softmax
+                delta = self.compute_output_delta(self.activations[i + 1], self.y)
+            else:
+                activation_derivative = self._get_activation_derivative(i)
+                derivative = activation_derivative(self.activations[i + 1])
+                delta = error * derivative
             delta_vec.insert(0, delta)
             if i != 0:
                 error = np.dot(delta, self.weights[i].T)
@@ -267,8 +284,19 @@ class multilayer_perceptron:
         return delta_vec
 
 
+    def compute_output_delta(self, output, y_true):
+        error = output - y_true
+        softmax_deriv = self.softmax_derivative(output)
+        delta = np.einsum('nij,nj->ni', softmax_deriv, error)
+        return delta
 
-
+    def softmax_derivative(self, y):
+        n_samples, n_classes = y.shape
+        derivative = np.zeros((n_samples, n_classes, n_classes))
+        for n in range(n_samples):
+            y_n = y[n].reshape(-1, 1)
+            derivative[n] = np.diagflat(y_n) - np.dot(y_n, y_n.T)
+        return derivative
 
     ##### UPDATE WEIGHTS ##### 
 
@@ -327,13 +355,20 @@ class multilayer_perceptron:
 
     def evaluate(self):
         correct_predictions = 0
+        
         for x, y_true in zip(self.X, self.y):
-            x = np.array(x).reshape(1, -1)  
+            x = np.array(x).reshape(1, -1)  # Asegurarse de que los datos estén en la forma correcta
             output = self._forward_prop(x)
-            prediction = np.round(output)
-            if prediction == y_true:
+            
+            # Para multiclase, obtener la clase con mayor probabilidad
+            prediction = np.argmax(output, axis=1)  # La clase predicha por la red
+            y_true_class = np.argmax(y_true)  # La clase verdadera
+            
+            if prediction == y_true_class:
                 correct_predictions += 1
+        
         print(f"Correct predictions: {correct_predictions} out of {len(self.X)}")
+
 
 
 

@@ -84,39 +84,7 @@ def run_3b_exercise():
     print("Evaluando la red neuronal...")
     perceptron.evaluate()
 
-    def evaluate_with_plot(self):
-    correct_predictions = 0
-    total_predictions = len(self.X)
-    correct_indices = []
-    incorrect_indices = []
-
-    for index, (x, y_true) in enumerate(zip(self.X, self.y)):
-        x = np.array(x).reshape(1, -1)  # Asegúrate de que el dato esté en la forma correcta para la red
-        output = self._forward_prop(x)
-        prediction = np.round(output)  # Redondea la salida para obtener una predicción binaria (0 o 1)
-
-        if prediction == y_true:
-            correct_predictions += 1
-            correct_indices.append(index)
-        else:
-            incorrect_indices.append(index)
-
-    # Calcular la precisión
-    accuracy = correct_predictions / total_predictions * 100
-    print(f"Precisión: {accuracy}% ({correct_predictions} de {total_predictions} predicciones correctas)")
-
-    # Generar una gráfica mostrando las predicciones correctas e incorrectas
-    plt.figure(figsize=(10, 6))
-    plt.bar(correct_indices, [1] * len(correct_indices), color='green', label='Correctas')
-    plt.bar(incorrect_indices, [1] * len(incorrect_indices), color='red', label='Incorrectas')
-
-    plt.xlabel('Índice de Predicción')
-    plt.ylabel('Correcto (1) / Incorrecto (0)')
-    plt.title('Predicciones Correctas e Incorrectas')
-    plt.legend()
-    plt.show()
-
-    perceptron.evaluate_with_plot()
+    
 
 
 
