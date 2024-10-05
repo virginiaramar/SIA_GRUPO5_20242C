@@ -1,10 +1,10 @@
 {
     "data": {
-        "input": [[0, 0], [0, 1], [1, 0], [1, 1]],
-        "output": [[0], [1], [1], [0]]
+        "input": "data/digits_flatten.txt",
+        "output": "data/TP3-ej3b-realoutput.txt"
     },
     "initial_parameters": {
-        "architecture": [2, 4, 1],
+        "architecture": [35, 20, 1],
         "learning_rate": 0.1,
         "epochs": 5000,
         "mode": "batch",
@@ -14,8 +14,8 @@
         "initialization": "random"  
     },
     "activation_function": {
-        "function": "tanh",
-        "use_softmax": false,
+        "function": "relu",
+        "output_function": "sigmoid",
         "beta": 1.0
     },
     "error": {
