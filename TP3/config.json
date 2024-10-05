@@ -7,8 +7,8 @@
         "architecture": [2, 4, 1],
         "learning_rate": 0.1,
         "epochs": 5000,
-        "mode": "minibatch",
-        "minibatch_size": 3
+        "mode": "batch",
+        "minibatch_size": 2
     },
     "weights": {
         "initialization": "random"  
