@@ -288,16 +288,17 @@ class multilayer_perceptron:
             self.learning_rate -= self.lr_adjustment_value * self.learning_rate
 
 
+    #### EVALUATE THE OUTPUT ####
 
     def evaluate(self):
         correct_predictions = 0
         for x, y_true in zip(self.X, self.y):
-            x = np.array(x).reshape(1, -1)  # Asegura que x tenga forma (1, n_features)
+            x = np.array(x).reshape(1, -1)  
             output = self._forward_prop(x)
             prediction = np.round(output)
             if prediction == y_true:
                 correct_predictions += 1
-        print(f"Predicciones correctas: {correct_predictions} de {len(self.X)}")
+        print(f"Correct predictions: {correct_predictions} out of {len(self.X)}")
 
     def predict(self, X):
         output = self._forward_prop(X)
