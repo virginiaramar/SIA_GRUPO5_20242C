@@ -110,13 +110,13 @@ class multilayer_perceptron:
             if self.mode == "batch":
 
                 output = self._forward_prop(self.X)
-                error = self.y - output
+                error =  self.y - output
 
                 delta_vec = self._back_prop(error)
 
                 # Actualización de pesos después de procesar todo el conjunto de datos
                 self._update_weights(delta_vec)  # Actualiza los pesos con los delta w acumulados
-                total_error = np.mean(error ** 2)
+                total_error = 0.5 * np.sum(error ** 2)
 
             # Mode Mini-batch: small ranges of data
             elif self.mode == "mini-batch":
@@ -126,13 +126,17 @@ class multilayer_perceptron:
                     end = min(start + self.batch_size, len(self.X))
                     batch_X = self.X[start:end]
                     batch_y = self.y[start:end]
+                    
                     output = self._forward_prop(batch_X)
+
                     error = batch_y - output
                     delta_vec = self._back_prop(error)
+
                     self._update_weights(delta_vec)
-                    total_error += np.mean(error ** 2)
+                    total_error += 0.5 * np.sum(error ** 2)
                     total_samples += len(batch_X)
                 total_error = total_error / total_samples
+                
                 
 
             # Modo Online: after each element
@@ -142,7 +146,10 @@ class multilayer_perceptron:
                     error = y - output
                     delta_vec = self._back_prop(error)
                     self._update_weights(delta_vec)
-                    total_error += np.mean(error ** 2)
+                    total_error += 0.5 * np.sum(error ** 2)
+
+            else:
+                raise ValueError("Invalid mode. Choose 'batch', 'mini-batch', 'online'.")
 
             # Convergence criteria
             if total_error < self.error_threshold:
@@ -156,6 +163,7 @@ class multilayer_perceptron:
     ##### ACTIVATION FUNCTIONS AND DERIVATIVES ##### 
 
     def activation(self, x, layer_index):
+        # Softmax for the last layer, good for multiclasses
         if layer_index == len(self.weights) - 1 and self.use_softmax:  
             exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
             return exp_x / exp_x.sum(axis=-1, keepdims=True)
