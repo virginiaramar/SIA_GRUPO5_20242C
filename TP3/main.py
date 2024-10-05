@@ -60,19 +60,79 @@ def run_xor_exercise():
 
 
 
+def run_3b_exercise():
+##### EJERCICIO 2 #####
+
+    data = np.genfromtxt('data/TP3-ej3-digitos.txt', delimiter=' ')
+
+    data_flatten=[data[0:7].flatten(), data[7:14].flatten(), data[14:21].flatten(), data[21:28].flatten(),
+                        data[28:35].flatten(), data[35:42].flatten(), data[42:49].flatten(), data[49:56].flatten(),
+                        data[56:63].flatten(), data[63:70].flatten()]
+
+    output_filename = 'data/digits_flatten.txt'
+    with open(output_filename, 'w') as output_file:
+        for digit in data_flatten:
+            output_file.write(' '.join(map(str, digit)) + '\n')
+
+    perceptron = multilayer_perceptron(config_file='config.json')
+
+    # Entrenar el modelo
+    print("Entrenando la red neuronal...")
+    perceptron.multilayer_algorithm()
+
+    # Evaluar el desempeño en las predicciones
+    print("Evaluando la red neuronal...")
+    perceptron.evaluate()
+
+    def evaluate_with_plot(self):
+    correct_predictions = 0
+    total_predictions = len(self.X)
+    correct_indices = []
+    incorrect_indices = []
+
+    for index, (x, y_true) in enumerate(zip(self.X, self.y)):
+        x = np.array(x).reshape(1, -1)  # Asegúrate de que el dato esté en la forma correcta para la red
+        output = self._forward_prop(x)
+        prediction = np.round(output)  # Redondea la salida para obtener una predicción binaria (0 o 1)
+
+        if prediction == y_true:
+            correct_predictions += 1
+            correct_indices.append(index)
+        else:
+            incorrect_indices.append(index)
+
+    # Calcular la precisión
+    accuracy = correct_predictions / total_predictions * 100
+    print(f"Precisión: {accuracy}% ({correct_predictions} de {total_predictions} predicciones correctas)")
+
+    # Generar una gráfica mostrando las predicciones correctas e incorrectas
+    plt.figure(figsize=(10, 6))
+    plt.bar(correct_indices, [1] * len(correct_indices), color='green', label='Correctas')
+    plt.bar(incorrect_indices, [1] * len(incorrect_indices), color='red', label='Incorrectas')
+
+    plt.xlabel('Índice de Predicción')
+    plt.ylabel('Correcto (1) / Incorrecto (0)')
+    plt.title('Predicciones Correctas e Incorrectas')
+    plt.legend()
+    plt.show()
+
+    perceptron.evaluate_with_plot()
+
+
+
 
 
 
 
 if __name__ == "__main__":
     # Choose which exercise to run
-    exercise = 1
+    exercise = 2
     
     if exercise == 1:
         run_xor_exercise()
     elif exercise == 2:
-        # Placeholder for Exercise 2
-        print("Exercise 2 will be implemented.")
+        print("Exercise 2 will be implemented:")
+        run_3b_exercise()
     elif exercise == 3:
         # Placeholder for Exercise 3
         print("Exercise 3 will be implemented.")

@@ -3,6 +3,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+import os
 
 class multilayer_perceptron:
     def __init__(self, config_file='config.json'):
@@ -11,8 +12,28 @@ class multilayer_perceptron:
             config = json.load(config_file)
 
       # Get the data from the config and put in variables
-        self.X = np.array(config['data']['input'])  # input
-        self.y = np.array(config['data']['output'])  # output
+        input_source = config['data']['input']
+        if isinstance(input_source, str) and input_source.endswith('.txt') and os.path.isfile(input_source):
+            # If it is a txt, read it
+            self.X = np.genfromtxt(input_source, delimiter=' ')
+        else:
+            self.X = np.array(input_source)
+
+        # output
+        output_source = config['data']['output']
+        
+        if isinstance(output_source, str) and output_source.endswith('.txt') and os.path.isfile(output_source):
+            self.y = np.genfromtxt(output_source).astype(float)
+            
+        else:
+            self.y = np.array(output_source)
+
+        self.y = self.y.reshape(-1, 1)
+
+
+            
+
+        
         self.architecture = config['initial_parameters']['architecture']  # layers
         self.learning_rate = config['initial_parameters']['learning_rate']  # LR
         self.epochs = config['initial_parameters']['epochs']  # Epochs
@@ -21,12 +42,39 @@ class multilayer_perceptron:
         self.error_threshold = config['error']['threshold']  # stop criteria: error threshold
         self.weight_initialization = config['weights']['initialization']  # weight initialization method
         self.activation_function = config['activation_function']['function']  # activation function
-        self.use_softmax = config['activation_function']['use_softmax']  # use of softmax in the last layer
+        self.output_function = config['activation_function']['output_function']  # use of softmax or sigmoid in the last layer
         self.beta = config['activation_function']['beta']
         
         self.adaptive_learning_rate = config['optimizer']['adaptive_learning_rate']
         self.lr_adjustment_value = config['optimizer']['lr_adjustment_value']
         self.optimizer = config['optimizer']['type']
+
+
+
+        # Activation function for hidden layers
+        if self.activation_function == 'sigmoid':
+            self.hidden_activation_function = lambda x: 1 / (1 + np.exp(-self.beta * x))
+            self.hidden_activation_derivative = lambda x: self.beta * x * (1 - x)
+        elif self.activation_function == 'tanh':
+            self.hidden_activation_function = lambda x: np.tanh(self.beta * x)
+            self.hidden_activation_derivative = lambda x: self.beta * (1 - x ** 2)
+        elif self.activation_function == 'relu':
+            self.hidden_activation_function = lambda x: np.maximum(0, x)
+            self.hidden_activation_derivative = lambda x: np.where(x > 0, 1, 0)
+        else:
+            raise ValueError("Invalid activation function. Choose 'sigmoid', 'tanh', or 'relu'.")
+
+        # Activation function for output layer
+        if self.output_function == 'sigmoid':
+            self.output_activation_function = lambda x: 1 / (1 + np.exp(-self.beta * x))
+            self.output_activation_derivative = lambda x: self.beta * x * (1 - x)
+            # Sigmoid for binary
+        elif self.output_function == 'softmax':
+            self.output_activation_function = lambda x: np.exp(x - np.max(x, axis=1, keepdims=True)) / np.sum(np.exp(x - np.max(x, axis=1, keepdims=True)), axis=1, keepdims=True)
+            # Softmax for multiclass
+        else:
+            raise ValueError("Invalid output activation function. Choose 'sigmoid' or 'softmax'.")
+
         # If we use momentum
         if self.optimizer == 'momentum':
             self.alpha = config['optimizer']['momentum']['alpha']
@@ -108,8 +156,8 @@ class multilayer_perceptron:
 
             # Mode Batch: actualization after calculating deltaw for all elements in the data
             if self.mode == "batch":
-
                 output = self._forward_prop(self.X)
+                
                 error =  self.y - output
 
                 delta_vec = self._back_prop(error)
@@ -162,31 +210,22 @@ class multilayer_perceptron:
 
     ##### ACTIVATION FUNCTIONS AND DERIVATIVES ##### 
 
-    def activation(self, x, layer_index):
-        # Softmax for the last layer, good for multiclasses
-        if layer_index == len(self.weights) - 1 and self.use_softmax:  
-            exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
-            return exp_x / exp_x.sum(axis=-1, keepdims=True)
-        
-        
-        if self.activation_function == 'sigmoid':
-            return 1 / (1 + np.exp(-self.beta * x))  
-        elif self.activation_function == 'tanh':
-            return np.tanh(self.beta * x)  
-        elif self.activation_function == 'relu':
-            return np.maximum(0, self.beta * x)  
+    def _get_activation_function(self, layer_index):
+        if layer_index == len(self.weights) - 1:
+            # output layer
+            return self.output_activation_function
         else:
-            raise ValueError("Invalid activation function. Choose 'sigmoid', 'tanh', or 'relu'.")
-        
-    def _activation_derivative(self, x):
-        if self.activation_function == 'sigmoid':
-            return self.beta * x * (1 - x)
-        elif self.activation_function == 'tanh':
-            return self.beta * (1 - x ** 2)
-        elif self.activation_function == 'relu':
-            return np.where(x > 0, 1, 0)
+            # Hidden layers
+            return self.hidden_activation_function
+
+    def _get_activation_derivative(self, layer_index):
+        if layer_index == len(self.weights) - 1:
+            # output layer
+            return self.output_activation_derivative
         else:
-            raise ValueError("Invalid activation function for derivative. Choose 'sigmoid', 'tanh', or 'relu'.")
+            # Hidden layers
+            return self.hidden_activation_derivative
+
 
 
 
@@ -201,12 +240,10 @@ class multilayer_perceptron:
 
         for i in range(len(self.weights)): # Iterations for all the layers of the multilayer
             
-            z = np.dot(self.activations[i], self.weights[i])  # Sumatoria and got product between x and w for every neuron of th next layer
+            z = np.dot(self.activations[i], self.weights[i]) + self.biases[i]  # Sumatoria and got product between x and w for every neuron of th next layer
             
-            # This process every neuron of the layer in parallel, makes the code faster
-            with ThreadPoolExecutor(max_workers=self.weights[i].shape[1]) as executor:
-                output = np.array(list(executor.map(lambda x: self.activation(x, i), z)))  # Convert again to array
-            
+            activation_function = self._get_activation_function(i)
+            output = activation_function(z)
 
             self.activations.append(output)  # Save the output of this layer with the previous ones
         return self.activations[-1] 
@@ -217,18 +254,16 @@ class multilayer_perceptron:
     ##### BACKWARD PROPAGATION ##### 
     
     def _back_prop(self, error):
-        # Keeps the delta w for the output, then for all the layers
-        delta_vec = [error * self._activation_derivative(self.activations[-1])]
-
-        # Hidden layers backpropagation
-        for i in range(len(self.weights) - 2, -1, -1):
-            delta = delta_vec[-1].dot(self.weights[i + 1].T) * self._activation_derivative(self.activations[i + 1])
-            #print(delta)
-            #delta = delta.reshape(self.activations[i].shape)
-
-            delta_vec.append(delta)
-        delta_vec.reverse()  # Invert the error for starting in the first layers
-
+        delta_vec = []
+        for i in reversed(range(len(self.weights))):
+            activation_derivative = self._get_activation_derivative(i)
+            derivative = activation_derivative(self.activations[i + 1])
+            
+            delta = error * derivative
+            delta_vec.insert(0, delta)
+            if i != 0:
+                error = np.dot(delta, self.weights[i].T)
+                
         return delta_vec
 
 
@@ -300,57 +335,7 @@ class multilayer_perceptron:
                 correct_predictions += 1
         print(f"Correct predictions: {correct_predictions} out of {len(self.X)}")
 
-    def predict(self, X):
-        output = self._forward_prop(X)
-        predictions = np.round(output)
-        return predictions
-
-
-    
-
-def plot_decision_boundary(mlp, X, y):
-    # Definir los límites del gráfico
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-
-    # Crear una malla de puntos
-    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 500),
-                        np.linspace(y_min, y_max, 500))
-
-    # Predecir para cada punto en la malla
-    grid_points = np.c_[xx.ravel(), yy.ravel()]
-    Z = mlp.predict(grid_points)
-    Z = Z.reshape(xx.shape)
-
-    # Crear el mapa de colores
-    cmap_light = ListedColormap(['#FFAAAA', '#AAAAFF'])
-    cmap_bold = ['#FF0000', '#0000FF']
-
-    # Graficar la frontera de decisión
-    plt.contourf(xx, yy, Z, cmap=cmap_light)
-
-    # Graficar los puntos de datos originales
-    plt.scatter(X[:, 0], X[:, 1], c=y.flatten(), cmap=ListedColormap(cmap_bold), edgecolor='k', s=100)
-
-    plt.xlim(xx.min(), xx.max())
-    plt.ylim(yy.min(), yy.max())
-    plt.title("Frontera de decisión aprendida por el MLP")
-    plt.xlabel("Entrada 1")
-    plt.ylabel("Entrada 2")
-    plt.show()
 
 
 
-if __name__ == "__main__":
-    mlp = multilayer_perceptron('config.json')
-    mlp.multilayer_algorithm()  # Entrena el modelo
-    mlp.predict(mlp.X)  # Evalúa el rendimiento en los datos de XOR
-    mlp.evaluate()
-
-    # Preparar los datos de entrada y salida para la gráfica
-    X = np.array(mlp.X)
-    y = np.array(mlp.y)
-
-    # Llamar a la función para graficar
-    plot_decision_boundary(mlp, X, y)
-
+ 
