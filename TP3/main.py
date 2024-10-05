@@ -13,6 +13,8 @@ from multilayer_perceptron import multilayer_perceptron
 # To evaluate XOR, change these in the config
 # "input": [[0, 0], [0, 1], [1, 0], [1, 1]],
 # "output": [[0], [1], [1], [0]]
+# Once changed, select 1 at the end of this code
+
 
 def plot_decision_boundary(mlp, X, y):
     # Define plot limits
