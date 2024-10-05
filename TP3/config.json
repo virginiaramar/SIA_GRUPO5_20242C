@@ -4,25 +4,25 @@
         "output": [[0], [1], [1], [0]]
     },
     "initial_parameters": {
-        "architecture": [2, 2, 1],
+        "architecture": [2, 4, 1],
         "learning_rate": 0.1,
-        "epochs": 10000,
-        "mode": "mini-batch",
-        "minibatch_size": 2
+        "epochs": 5000,
+        "mode": "minibatch",
+        "minibatch_size": 3
     },
     "weights": {
         "initialization": "random"  
     },
     "activation_function": {
-        "function": "relu",
+        "function": "tanh",
         "use_softmax": false,
         "beta": 1.0
     },
     "error": {
-        "threshold": 0.01  
+        "threshold": 0.001
     },
     "optimizer": {
-      "type": "adam", 
+      "type": "momentum", 
 
       "adaptive_learning_rate": true,
       "lr_adjustment_value": 0.01,
