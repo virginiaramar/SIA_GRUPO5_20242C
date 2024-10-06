@@ -60,23 +60,10 @@ def run_3b_exercise():
 
     print(f"Accuracy on parity discrimination: {accuracy*100}%")
 
-def run_3c_exercise(noise_type=None):
+def run_3c_exercise():
     data = np.genfromtxt('data/TP3-ej3-digitos.txt', delimiter=' ')
     data_flatten = np.array([data[i:i+7].flatten() for i in range(0, 70, 7)])
     labels = np.eye(10)  # One-hot encoding for 10 classes
-
-    if noise_type is not None:
-        noise_generator = NoiseGenerator()
-        if noise_type == '50_percent':
-            data_flatten = noise_generator.add_50_percent_noise(data_flatten)
-        elif noise_type == '20_percent':
-            data_flatten = noise_generator.add_20_percent_noise(data_flatten)
-        elif noise_type == '100_percent':
-            data_flatten = noise_generator.add_100_percent_noise(data_flatten)
-        elif noise_type == 'salt_and_pepper':
-            data_flatten = noise_generator.add_salt_and_pepper_noise(data_flatten)
-        elif noise_type == 'normal':
-            data_flatten = noise_generator.add_noise(data_flatten)
 
     perceptron = multilayer_perceptron(config_file='config.json')
 
@@ -114,7 +101,7 @@ def run_3c_exercise(noise_type=None):
     plt.show()
 
     print("Probando con datos ruidosos...")
-    noisy_data = add_salt_and_pepper_noise(data_flatten)
+    noisy_data = add_noise(data_flatten)
     noisy_accuracy = perceptron.evaluate(noisy_data, labels)
 
     # Generar heatmap para datos ruidosos
@@ -136,20 +123,3 @@ def run_3c_exercise(noise_type=None):
     plt.show()
 
     print("Heatmaps saved as 'heatmap_digitos.png' and 'heatmap_digitos_ruidosos.png'")
-
-
-
-if __name__ == "__main__":
-    exercise = int(input("Ingrese el número de ejercicio a ejecutar (1, 2 o 3): "))
-    
-    if exercise == 1:
-        run_xor_exercise()
-    elif exercise == 2:
-        run_3b_exercise()
-    elif exercise == 3:
-        noise_type = input("Ingrese el tipo de ruido ('50_percent', '20_percent', '100_percent', 'salt_and_pepper', 'normal' o 'none'): ").strip()
-
-        if noise_type == 'none':
-            run_3c_exercise()
-        else:
-            run_3c_exercise(noise_type)
