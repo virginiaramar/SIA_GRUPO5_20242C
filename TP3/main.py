@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import json
 import seaborn as sns
+from noise import NoiseGenerator
 
 
 from multilayer_perceptron import multilayer_perceptron 
@@ -60,26 +61,26 @@ def run_3b_exercise():
     print("Evaluando la red neuronal...")
     perceptron.evaluate(data_flatten, labels)
 
-def run_3c_exercise():
+def run_3c_exercise(noise_type=None):
+    # Cargar los datos originales
     data = np.genfromtxt('data/TP3-ej3-digitos.txt', delimiter=' ')
     data_flatten = np.array([data[i:i+7].flatten() for i in range(0, 70, 7)])
-    labels = np.eye(10)  # One-hot encoding for 10 classes
+    labels = np.eye(10)  # One-hot encoding for 10 clases
 
+    # Entrenamiento y evaluación con datos originales (sin ruido)
     perceptron = multilayer_perceptron(config_file='config.json')
-
-    print("Entrenando la red neuronal para reconocimiento de dígitos...")
+    
+    print("Entrenando la red neuronal con datos originales (sin ruido)...")
     perceptron.multilayer_algorithm(data_flatten, labels)
-
-    print("Evaluando la red neuronal...")
+    
+    print("Evaluando la red neuronal con datos originales...")
     accuracy = perceptron.evaluate(data_flatten, labels)
 
-    # Generar predicciones
+    # Generar heatmap para datos originales
     predictions = perceptron.predict(data_flatten)
-
-    # Crear heatmap
     plt.figure(figsize=(12, 10))
     sns.heatmap(predictions, annot=True, cmap='Blues', fmt='.2f', cbar_kws={'label': 'Probabilidad'})
-    plt.title('Mapa de calor de predicciones de dígitos')
+    plt.title('Mapa de calor de predicciones de dígitos (datos originales)')
     plt.xlabel('Dígito predicho')
     plt.ylabel('Dígito real')
     
@@ -89,46 +90,52 @@ def run_3c_exercise():
              horizontalalignment='center', verticalalignment='center', 
              transform=plt.gca().transAxes, fontsize=12, color='red')
 
-    # Mostrar información sobre la arquitectura
-    plt.text(0.5, 1.1, f'Capa 0: {perceptron.architecture[0]} inputs\n'
-                       f'Capa 1: {perceptron.architecture[1]} nodos\n'
-                       f'Capa Final: {perceptron.architecture[-1]} Outputs', 
-             horizontalalignment='center', verticalalignment='center', 
-             transform=plt.gca().transAxes, fontsize=10)
-
     plt.tight_layout()
     plt.savefig('heatmap_digitos.png')
     plt.show()
 
-    print("Probando con datos ruidosos...")
-    noisy_data = add_noise(data_flatten)
-    noisy_accuracy = perceptron.evaluate(noisy_data, labels)
-
-    # Generar heatmap para datos ruidosos
-    noisy_predictions = perceptron.predict(noisy_data)
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(noisy_predictions, annot=True, cmap='Blues', fmt='.2f', cbar_kws={'label': 'Probabilidad'})
-    plt.title('Mapa de calor de predicciones de dígitos (datos ruidosos)')
-    plt.xlabel('Dígito predicho')
-    plt.ylabel('Dígito real')
+    print("Heatmap guardado como 'heatmap_digitos.png'.")
     
-    # Agregar texto con la suma de la diagonal
-    noisy_diagonal_sum = np.trace(noisy_predictions)
-    plt.text(0.5, 1.05, f'Suma de la diagonal: {noisy_diagonal_sum:.2f}', 
-             horizontalalignment='center', verticalalignment='center', 
-             transform=plt.gca().transAxes, fontsize=12, color='red')
+    # Si se especifica un tipo de ruido, aplicarlo a los datos
+    if noise_type is not None:
+        print(f"Probando con datos ruidosos ({noise_type})...")
+        noise_generator = NoiseGenerator()
+        if noise_type == '50_percent':
+            noisy_data = noise_generator.add_50_percent_noise(data_flatten)
+        elif noise_type == '20_percent':
+            noisy_data = noise_generator.add_20_percent_noise(data_flatten)
+        elif noise_type == '100_percent':
+            noisy_data = noise_generator.add_100_percent_noise(data_flatten)
+        elif noise_type == 'salt_and_pepper':
+            noisy_data = noise_generator.add_salt_and_pepper_noise(data_flatten)
+        elif noise_type == 'normal':
+            noisy_data = noise_generator.add_noise(data_flatten)
 
-    plt.tight_layout()
-    plt.savefig('heatmap_digitos_ruidosos.png')
-    plt.show()
+        # Evaluación con datos ruidosos
+        noisy_accuracy = perceptron.evaluate(noisy_data, labels)
 
-    print("Heatmaps saved as 'heatmap_digitos.png' and 'heatmap_digitos_ruidosos.png'")
+        # Generar heatmap para datos ruidosos
+        noisy_predictions = perceptron.predict(noisy_data)
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(noisy_predictions, annot=True, cmap='Blues', fmt='.2f', cbar_kws={'label': 'Probabilidad'})
+        plt.title(f'Mapa de calor de predicciones de dígitos (datos ruidosos - {noise_type})')
+        plt.xlabel('Dígito predicho')
+        plt.ylabel('Dígito real')
+        
+        # Agregar texto con la suma de la diagonal
+        noisy_diagonal_sum = np.trace(noisy_predictions)
+        plt.text(0.5, 1.05, f'Suma de la diagonal: {noisy_diagonal_sum:.2f}', 
+                 horizontalalignment='center', verticalalignment='center', 
+                 transform=plt.gca().transAxes, fontsize=12, color='red')
 
-def add_noise(data, noise_level=0.1):
-    noisy_data = data.copy()
-    noise = np.random.normal(0, noise_level, data.shape)
-    noisy_data = np.clip(noisy_data + noise, 0, 1)
-    return noisy_data
+        plt.tight_layout()
+        plt.savefig('heatmap_digitos_ruidosos.png')
+        plt.show()
+
+        print("Heatmap guardado como 'heatmap_digitos_ruidosos.png'.")
+
+
+
 
 if __name__ == "__main__":
     exercise = int(input("Ingrese el número de ejercicio a ejecutar (1, 2 o 3): "))
@@ -138,4 +145,9 @@ if __name__ == "__main__":
     elif exercise == 2:
         run_3b_exercise()
     elif exercise == 3:
-        run_3c_exercise()
+        noise_type = input("Ingrese el tipo de ruido ('50_percent', '20_percent', '100_percent', 'salt_and_pepper', 'normal' o 'none'): ").strip()
+
+        if noise_type == 'none':
+            run_3c_exercise()
+        else:
+            run_3c_exercise(noise_type)
