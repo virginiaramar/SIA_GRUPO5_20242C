@@ -468,5 +468,3 @@ class multilayer_perceptron:
         plt.xlabel('Neuronas de salida')
         plt.ylabel('Neuronas de entrada')
         plt.show()
-
-# Fin de la clase multilayer_perceptron
