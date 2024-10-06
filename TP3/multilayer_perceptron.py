@@ -63,6 +63,14 @@ class multilayer_perceptron:
         self.lr_adjustment_value = config['optimizer']['lr_adjustment_value']
         self.optimizer = config['optimizer']['type']
 
+        # Cross-validation parameters
+        self.use_cross_validation = config['cross_validation']['use_cross_validation']
+        self.k_folds = config['cross_validation']['k_folds']
+        self.shuffle = config['cross_validation']['shuffle']
+        self.random_seed = config['cross_validation']['random_seed']
+
+
+
 
 
         # Activation function for hidden layers
@@ -114,6 +122,7 @@ class multilayer_perceptron:
         self.adam_m = [np.zeros_like(w) for w in self.weights]
         self.adam_v = [np.zeros_like(w) for w in self.weights]
         self.timestep = 1
+
         
 
 
@@ -159,64 +168,166 @@ class multilayer_perceptron:
             self.weights.append(weight_matrix)
             self.biases.append(np.ones((1, output_size)))
 
+    
+    ##### ERROR FUNCTIONS AND DERIVATIVES #####
+    def compute_loss(self, y_true, output):
+        if self.loss_function == 'mse':
+            return 0.5 * np.mean((y_true - output) ** 2)
+        elif self.loss_function == 'cross_entropy':
+            epsilon = 1e-12
+            if self.problem_type == 'multiclass':
+                return -np.mean(np.sum(y_true * np.log(output + epsilon), axis=1))
+            elif self.problem_type == 'binary':
+                return -np.mean(y_true * np.log(output + epsilon) + (1 - y_true) * np.log(1 - output + epsilon))
+        else:
+            raise ValueError("Invalid loss function.")
+
+    def compute_loss_derivative(self, y_true, output):
+        if self.loss_function == 'mse':
+            return output - y_true
+        elif self.loss_function == 'cross_entropy':
+            return output - y_true
+        else:
+            raise ValueError("Invalid loss function.")
+
+    
+
+    ##### FOLD FOR CROSS VALIDATION #####
+
+    def _create_folds(self):
+            np.random.seed(self.random_seed)
+            indices = np.arange(len(self.X))
+            if self.shuffle:
+                np.random.shuffle(indices)
+            fold_sizes = np.full(self.k_folds, len(self.X) // self.k_folds)
+            fold_sizes[:len(self.X) % self.k_folds] += 1
+            current = 0
+            self.folds = []
+            for fold_size in fold_sizes:
+                start, stop = current, current + fold_size
+                self.folds.append(indices[start:stop])
+                current = stop
 
 
 
     ##### MULTILAYER ALGORITHM ##### 
     
     def multilayer_algorithm(self):
-        for epoch in range(self.epochs):
-            total_error = 0  # Error in that epoch
+        if self.use_cross_validation:
+            self._create_folds()
+            accuracies = []
+            for fold_index in range(self.k_folds):
+                print(f"Fold {fold_index + 1}/{self.k_folds}")
+                # Separar los índices para entrenamiento y validación
+                validation_indices = self.folds[fold_index]
+                training_indices = np.hstack([self.folds[i] for i in range(self.k_folds) if i != fold_index])
 
-            # Mode Batch: actualization after calculating deltaw for all elements in the data
-            if self.mode == "batch":
-                output = self._forward_prop(self.X)
+                print(validation_indices)
+                print(training_indices)
                 
-                error =  self.y - output
+                # Crear los conjuntos de entrenamiento y validación
+                X_train, y_train = self.X[training_indices], self.y[training_indices]
+                X_val, y_val = self.X[validation_indices], self.y[validation_indices]
+                
+                # Reinicializar pesos y biases antes de cada fold
+                self._initialize_weights()
+                
+                # Entrenar el modelo con los datos de entrenamiento
+                for epoch in range(self.epochs):
+                    total_error = 0
+                    if self.mode == "batch":
+                        output = self._forward_prop(X_train)
+                        error = y_train - output
+                        delta_vec = self._back_prop(error)
+                        self._update_weights(delta_vec)
+                        total_error = 0.5 * np.sum(error ** 2)
 
-                delta_vec = self._back_prop(error)
+                    elif self.mode == "mini-batch":
+                        total_error = 0
+                        total_samples = 0
+                        for start in range(0, len(self.X), self.batch_size):
+                            end = min(start + self.batch_size, len(self.X))
+                            batch_X = self.X[start:end]
+                            batch_y = self.y[start:end]
+                            
+                            output = self._forward_prop(batch_X)
 
-                # Actualización de pesos después de procesar todo el conjunto de datos
-                self._update_weights(delta_vec)  # Actualiza los pesos con los delta w acumulados
-                total_error = 0.5 * np.sum(error ** 2)
+                            error = batch_y - output
+                            delta_vec = self._back_prop(error)
 
-            # Mode Mini-batch: small ranges of data
-            elif self.mode == "mini-batch":
-                total_error = 0
-                total_samples = 0
-                for start in range(0, len(self.X), self.batch_size):
-                    end = min(start + self.batch_size, len(self.X))
-                    batch_X = self.X[start:end]
-                    batch_y = self.y[start:end]
+                            self._update_weights(delta_vec)
+                            total_error += 0.5 * np.sum(error ** 2)
+                            total_samples += len(batch_X)
+                        total_error = total_error / total_samples
+
+                    elif self.mode == "online":
+                        for x, y in zip(X_train, y_train):
+                            output = self._forward_prop(x.reshape(1, -1))
+                            error = y - output
+                            delta_vec = self._back_prop(error)
+                            self._update_weights(delta_vec)
+                            total_error += 0.5 * np.sum(error ** 2)
+                    else:
+                        raise ValueError("Invalid mode. Choose 'batch', 'mini-batch', 'online'.")
                     
-                    output = self._forward_prop(batch_X)
-
-                    error = batch_y - output
-                    delta_vec = self._back_prop(error)
-
-                    self._update_weights(delta_vec)
-                    total_error += 0.5 * np.sum(error ** 2)
-                    total_samples += len(batch_X)
-                total_error = total_error / total_samples
+                    # Criterio de convergencia
+                    if total_error < self.error_threshold:
+                        print(f"Convergence reached in epoch {epoch + 1}")
+                        break
                 
-                
+                # Evaluar el modelo con los datos de validación
+                accuracy = self._evaluate_fold(X_val, y_val)
+                accuracies.append(accuracy)
+            
+            # Calcular la precisión promedio
+            average_accuracy = np.mean(accuracies)
+            print(f"Average Accuracy over {self.k_folds} folds: {average_accuracy * 100:.2f}%")
+        else:
+            # Entrenamiento normal sin cross-validation
+            for epoch in range(self.epochs):
+                # Tu código de entrenamiento existente
+                pass
 
-            # Modo Online: after each element
-            elif self.mode == "online":
-                for x, y in zip(self.X, self.y):
-                    output = self._forward_prop(x.reshape(1, -1))
-                    error = y - output
-                    delta_vec = self._back_prop(error)
-                    self._update_weights(delta_vec)
-                    total_error += 0.5 * np.sum(error ** 2)
 
-            else:
-                raise ValueError("Invalid mode. Choose 'batch', 'mini-batch', 'online'.")
+    def _evaluate_fold(self, X_val, y_val):
+        correct_predictions = 0
+        for x, y_true in zip(X_val, y_val):
+            x = x.reshape(1, -1)
+            output = self._forward_prop(x)
+            if self.problem_type == 'binary':
+                prediction = (output >= 0.5).astype(int)
+                y_true = int(y_true)
+                if prediction == y_true:
+                    correct_predictions += 1
+            elif self.problem_type == 'multiclass':
+                prediction = np.argmax(output, axis=1)
+                y_true_class = np.argmax(y_true)
+                if prediction == y_true_class:
+                    correct_predictions += 1
+        accuracy = correct_predictions / len(X_val)
+        print(f"Validation Accuracy: {accuracy * 100:.2f}%")
+        return accuracy
 
-            # Convergence criteria
-            if total_error < self.error_threshold:
-                print(f"Convergence reached in epoch {epoch + 1}")
-                break
+    def evaluate(self):
+        correct_predictions = 0
+        for x, y_true in zip(self.X, self.y):
+            x = x.reshape(1, -1)
+            output = self._forward_prop(x)
+            if self.problem_type == 'binary':
+                prediction = (output >= 0.5).astype(int)
+                y_true = int(y_true)
+                if prediction == y_true:
+                    correct_predictions += 1
+            elif self.problem_type == 'multiclass':
+                prediction = np.argmax(output, axis=1)
+                y_true_class = np.argmax(y_true)
+                if prediction == y_true_class:
+                    correct_predictions += 1
+        accuracy = correct_predictions / len(self.X)
+        print(f"Accuracy: {accuracy * 100:.2f}%")
+
+
+
 
 
 

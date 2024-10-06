@@ -1,14 +1,14 @@
 {
     "data": {
         "input": "data/digits_flatten.txt",
-        "output": "data/TP3-ej3c-realoutput.txt",
-        "problem_type": "multiclass"
+        "output": "data/TP3-ej3b-realoutput.txt",
+        "problem_type": "binary"
     },
     "initial_parameters": {
-        "architecture": [35, 20, 10],
+        "architecture": [35, 20, 1],
         "learning_rate": 0.1,
         "epochs": 5000,
-        "mode": "online",
+        "mode": "mini-batch",
         "minibatch_size": 2
     },
     "weights": {
@@ -23,7 +23,7 @@
         "threshold": 0.001
     },
     "optimizer": {
-      "type": "adam", 
+      "type": "gradient_descent", 
 
       "adaptive_learning_rate": true,
       "lr_adjustment_value": 0.01,
@@ -37,5 +37,11 @@
         "epsilon": 1e-8,
         "alpha": 0.001      
       }
+    },
+    "cross_validation": {
+      "use_cross_validation": true,
+      "k_folds": 5,
+      "shuffle": false,
+      "random_seed": 42
     }
 }

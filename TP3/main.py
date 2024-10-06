@@ -84,6 +84,7 @@ def run_3b_exercise():
     print("Evaluando la red neuronal...")
     perceptron.evaluate()
 
+
     
 
 
