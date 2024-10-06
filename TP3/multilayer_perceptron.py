@@ -1,8 +1,6 @@
 import numpy as np
 import json
-from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import os
 import seaborn as sns
 
@@ -381,35 +379,23 @@ class multilayer_perceptron:
             self.learning_rate -= self.lr_adjustment_value * self.learning_rate
 
     #### EVALUATE THE OUTPUT ####
-    def evaluate(self, X=None, y=None):
-        if X is None:
-            X = self.X
-        if y is None:
-            y = self.y
-
-        correct_predictions = 0
-        predictions = []
-        
-        for x, y_true in zip(X, y):
-            x = np.array(x).reshape(1, -1)  # Asegurarse de que los datos estén en la forma correcta
-            output = self._forward_prop(x)
-            
-            if self.problem_type == 'multiclass':
-                # Para multiclase, obtener la clase con mayor probabilidad
-                prediction = np.argmax(output, axis=1)  # La clase predicha por la red
-                y_true_class = np.argmax(y_true)  # La clase verdadera
-            else:
-                # Para problemas binarios
-                prediction = (output >= 0.5).astype(int)
-                y_true_class = y_true
-            
-            predictions.append(prediction)
-            if prediction == y_true_class:
-                correct_predictions += 1
-        
-        accuracy = correct_predictions / len(X)
-        print(f"Accuracy: {accuracy * 100:.2f}%")
-        return accuracy, predictions
+    def evaluate(self):
+            correct_predictions = 0
+            for x, y_true in zip(self.X, self.y):
+                x = x.reshape(1, -1)
+                output = self._forward_prop(x)
+                if self.problem_type == 'binary':
+                    prediction = (output >= 0.5).astype(int)
+                    y_true = int(y_true)
+                    if prediction == y_true:
+                        correct_predictions += 1
+                elif self.problem_type == 'multiclass':
+                    prediction = np.argmax(output, axis=1)
+                    y_true_class = np.argmax(y_true)
+                    if prediction == y_true_class:
+                        correct_predictions += 1
+            accuracy = correct_predictions / len(self.X)
+            return accuracy
 
     def predict(self, X):
         return self._forward_prop(X)

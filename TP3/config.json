@@ -1,46 +1,45 @@
 {
-  "data": {
-      "input": "data/digits_flatten.txt",
-      "output": "data/TP3-ej3c-realoutput.txt",
-      "problem_type": "multiclass"
-  },
-  "initial_parameters": {
-      "architecture": [35, 60, 40, 10],
-      "learning_rate": 0.001,
-      "epochs": 1000,
-      "mode": "batch",
-      "minibatch_size": 5
-  },
-  "weights": {
-      "initialization": "xavier"
-  },
-  "activation_function": {
-      "function": "sigmoid",
-      "output_function": "softmax",
-      "beta": 1.0
-  },
-  "error": {
-      "threshold": 0.0001
-  },
-  "optimizer": {
-      "type": "momentum",
-      "adaptive_learning_rate": true,
-      "lr_adjustment_value": 0.01,
-      "lr_adjustment_factor": 0.5,
-      "momentum": {
-          "alpha": 0.9
-      },
-      "adam": {
-          "beta1": 0.9,
-          "beta2": 0.999,
-          "epsilon": 1e-8,
-          "alpha": 0.001
-      }
-  },
-  "cross_validation": {
-      "use_cross_validation": false,
-      "k_folds": 5,
-      "shuffle": true,
-      "random_seed": 42
-  }
+    "data": {
+        "input": "data/digits_flatten.txt",
+        "output": "data/TP3-ej3b-realoutput.txt",
+        "problem_type": "binary"
+    },
+    "initial_parameters": {
+        "architecture": [35, 10,10,30,50,10,1],
+        "learning_rate": 0.01,
+        "epochs": 1000,
+        "mode": "online",
+        "minibatch_size": 5
+    },
+    "weights": {
+        "initialization": "xavier"
+    },
+    "activation_function": {
+        "function": "relu",
+        "output_function": "sigmoid",
+        "beta": 1.0
+    },
+    "error": {
+        "threshold": 0.001
+    },
+    "optimizer": {
+        "type": "adam",
+        "adaptive_learning_rate": true,
+        "lr_adjustment_value": 0.001,
+        "momentum": {
+            "alpha": 0.9
+        },
+        "adam": {
+            "beta1": 0.9,
+            "beta2": 0.999,
+            "epsilon": 1e-8,
+            "alpha": 0.001
+        }
+    },
+    "cross_validation": {
+        "use_cross_validation": true,
+        "k_folds": 5,
+        "shuffle": true,
+        "random_seed": 42
+    }
 }
