@@ -2,19 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import json
+import seaborn as sns
 
-# Import the class multilayer perceptron
+
 from multilayer_perceptron import multilayer_perceptron 
-
-
-
-##### EJERCICIO 3.1 #####
-
-# To evaluate XOR, change these in the config
-# "input": [[0, 0], [0, 1], [1, 0], [1, 1]],
-# "output": [[0], [1], [1], [0]]
-# Once changed, select 1 at the end of this code
-
 
 def plot_decision_boundary(mlp, X, y):
     # Define plot limits
@@ -48,63 +39,103 @@ def plot_decision_boundary(mlp, X, y):
     plt.show()
 
 def run_xor_exercise():
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    y = np.array([[0], [1], [1], [0]])
+    
     mlp = multilayer_perceptron('config.json')
-    # Train the model
-    mlp.multilayer_algorithm()
-
-    # Evaluate performance
-    mlp.evaluate()
-
-    # Plot decision boundary
-    plot_decision_boundary(mlp, mlp.X, mlp.y)
-
-
+    mlp.multilayer_algorithm(X, y)
+    mlp.evaluate(X, y)
+    plot_decision_boundary(mlp, X, y)
 
 def run_3b_exercise():
-##### EJERCICIO 2 #####
-
     data = np.genfromtxt('data/TP3-ej3-digitos.txt', delimiter=' ')
+    data_flatten = np.array([data[i:i+7].flatten() for i in range(0, 70, 7)])
+    labels = np.eye(10)  # One-hot encoding for 10 classes
 
-    data_flatten=[data[0:7].flatten(), data[7:14].flatten(), data[14:21].flatten(), data[21:28].flatten(),
-                        data[28:35].flatten(), data[35:42].flatten(), data[42:49].flatten(), data[49:56].flatten(),
-                        data[56:63].flatten(), data[63:70].flatten()]
+    np.savetxt('data/digits_flatten.txt', data_flatten, fmt='%d', delimiter=' ')
 
-    output_filename = 'data/digits_flatten.txt'
-    with open(output_filename, 'w') as output_file:
-        for digit in data_flatten:
-            output_file.write(' '.join(map(str, digit)) + '\n')
+    perceptron = multilayer_perceptron(config_file='config.json')
+    print("Entrenando la red neuronal...")
+    perceptron.multilayer_algorithm(data_flatten, labels)
+    print("Evaluando la red neuronal...")
+    perceptron.evaluate(data_flatten, labels)
+
+def run_3c_exercise():
+    data = np.genfromtxt('data/TP3-ej3-digitos.txt', delimiter=' ')
+    data_flatten = np.array([data[i:i+7].flatten() for i in range(0, 70, 7)])
+    labels = np.eye(10)  # One-hot encoding for 10 classes
 
     perceptron = multilayer_perceptron(config_file='config.json')
 
-    # Entrenar el modelo
-    print("Entrenando la red neuronal...")
-    perceptron.multilayer_algorithm()
+    print("Entrenando la red neuronal para reconocimiento de dígitos...")
+    perceptron.multilayer_algorithm(data_flatten, labels)
 
-    # Evaluar el desempeño en las predicciones
     print("Evaluando la red neuronal...")
-    perceptron.evaluate()
+    accuracy = perceptron.evaluate(data_flatten, labels)
 
+    # Generar predicciones
+    predictions = perceptron.predict(data_flatten)
 
+    # Crear heatmap
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(predictions, annot=True, cmap='Blues', fmt='.2f', cbar_kws={'label': 'Probabilidad'})
+    plt.title('Mapa de calor de predicciones de dígitos')
+    plt.xlabel('Dígito predicho')
+    plt.ylabel('Dígito real')
     
+    # Agregar texto con la suma de la diagonal
+    diagonal_sum = np.trace(predictions)
+    plt.text(0.5, 1.05, f'Suma de la diagonal: {diagonal_sum:.2f}', 
+             horizontalalignment='center', verticalalignment='center', 
+             transform=plt.gca().transAxes, fontsize=12, color='red')
 
+    # Mostrar información sobre la arquitectura
+    plt.text(0.5, 1.1, f'Capa 0: {perceptron.architecture[0]} inputs\n'
+                       f'Capa 1: {perceptron.architecture[1]} nodos\n'
+                       f'Capa Final: {perceptron.architecture[-1]} Outputs', 
+             horizontalalignment='center', verticalalignment='center', 
+             transform=plt.gca().transAxes, fontsize=10)
 
+    plt.tight_layout()
+    plt.savefig('heatmap_digitos.png')
+    plt.show()
 
+    print("Probando con datos ruidosos...")
+    noisy_data = add_noise(data_flatten)
+    noisy_accuracy = perceptron.evaluate(noisy_data, labels)
 
+    # Generar heatmap para datos ruidosos
+    noisy_predictions = perceptron.predict(noisy_data)
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(noisy_predictions, annot=True, cmap='Blues', fmt='.2f', cbar_kws={'label': 'Probabilidad'})
+    plt.title('Mapa de calor de predicciones de dígitos (datos ruidosos)')
+    plt.xlabel('Dígito predicho')
+    plt.ylabel('Dígito real')
+    
+    # Agregar texto con la suma de la diagonal
+    noisy_diagonal_sum = np.trace(noisy_predictions)
+    plt.text(0.5, 1.05, f'Suma de la diagonal: {noisy_diagonal_sum:.2f}', 
+             horizontalalignment='center', verticalalignment='center', 
+             transform=plt.gca().transAxes, fontsize=12, color='red')
 
+    plt.tight_layout()
+    plt.savefig('heatmap_digitos_ruidosos.png')
+    plt.show()
 
+    print("Heatmaps saved as 'heatmap_digitos.png' and 'heatmap_digitos_ruidosos.png'")
+
+def add_noise(data, noise_level=0.1):
+    noisy_data = data.copy()
+    noise = np.random.normal(0, noise_level, data.shape)
+    noisy_data = np.clip(noisy_data + noise, 0, 1)
+    return noisy_data
 
 if __name__ == "__main__":
-    # Choose which exercise to run
-    exercise = 2
+    exercise = int(input("Ingrese el número de ejercicio a ejecutar (1, 2 o 3): "))
     
     if exercise == 1:
         run_xor_exercise()
     elif exercise == 2:
-        print("Exercise 2 will be implemented:")
         run_3b_exercise()
     elif exercise == 3:
-        # Placeholder for Exercise 3
-        print("Exercise 3 will be implemented.")
-    else:
-        print("Invalid exercise. Please choose 1, 2, or 3.")
-
+        run_3c_exercise()

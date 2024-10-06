@@ -1,47 +1,45 @@
 {
-    "data": {
-        "input": "data/digits_flatten.txt",
-        "output": "data/TP3-ej3b-realoutput.txt",
-        "problem_type": "binary"
-    },
-    "initial_parameters": {
-        "architecture": [35, 20, 1],
-        "learning_rate": 0.1,
-        "epochs": 5000,
-        "mode": "mini-batch",
-        "minibatch_size": 2
-    },
-    "weights": {
-        "initialization": "xavier"  
-    },
-    "activation_function": {
-        "function": "tanh",
-        "output_function": "sigmoid",
-        "beta": 1.0
-    },
-    "error": {
-        "threshold": 0.001
-    },
-    "optimizer": {
-      "type": "gradient_descent", 
-
+  "data": {
+      "input": "data/digits_flatten.txt",
+      "output": "data/TP3-ej3c-realoutput.txt",
+      "problem_type": "multiclass"
+  },
+  "initial_parameters": {
+      "architecture": [35, 15, 10],
+      "learning_rate": 0.01,
+      "epochs": 1000,
+      "mode": "mini-batch",
+      "minibatch_size": 5
+  },
+  "weights": {
+      "initialization": "xavier"
+  },
+  "activation_function": {
+      "function": "relu",
+      "output_function": "softmax",
+      "beta": 1.0
+  },
+  "error": {
+      "threshold": 0.001
+  },
+  "optimizer": {
+      "type": "adam",
       "adaptive_learning_rate": true,
-      "lr_adjustment_value": 0.01,
-
+      "lr_adjustment_value": 0.001,
       "momentum": {
-        "alpha": 0.9
+          "alpha": 0.9
       },
       "adam": {
-        "beta1": 0.9,
-        "beta2": 0.999,
-        "epsilon": 1e-8,
-        "alpha": 0.001      
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "epsilon": 1e-8,
+          "alpha": 0.001
       }
-    },
-    "cross_validation": {
+  },
+  "cross_validation": {
       "use_cross_validation": true,
       "k_folds": 5,
-      "shuffle": false,
+      "shuffle": true,
       "random_seed": 42
-    }
+  }
 }
