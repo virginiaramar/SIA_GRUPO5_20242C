@@ -169,6 +169,7 @@ class multilayer_perceptron:
         for fold_size in fold_sizes:
             start, stop = current, current + fold_size
             self.folds.append(indices[start:stop])
+            print(indices[start:stop])
             current = stop
 
     ##### MULTILAYER ALGORITHM ##### 
@@ -185,6 +186,17 @@ class multilayer_perceptron:
     def _cross_validation_training(self):
         self._create_folds()
         accuracies = []
+
+        self.fold_results = [] 
+        self.fold_numbers = []
+        self.train_error_history = []
+        self.val_error_history = []
+        self.train_accuracy_history = []
+        self.val_accuracy_history = []
+        self.train_precision_history = []
+        self.val_precision_history = []
+
+
         for fold_index in range(self.k_folds):
             print(f"Fold {fold_index + 1}/{self.k_folds}")
             validation_indices = self.folds[fold_index]
@@ -194,17 +206,62 @@ class multilayer_perceptron:
             X_val, y_val = self.X[validation_indices], self.y[validation_indices]
             
             self._initialize_weights()
+
+            fold_train_error_history = []
+            fold_val_error_history = []
+            fold_train_accuracy_history = []
+            fold_val_accuracy_history = []
+            fold_train_precision_history = []
+            fold_val_precision_history = [] 
+            fold_correctness = []  # Aquí guardaremos si la predicción es correcta o incorrecta
+            fold_numbers = [] 
             
             for epoch in range(self.epochs):
-                total_error = self._train_epoch(X_train, y_train)
+                total_train_error = self._train_epoch(X_train, y_train)
+                total_val_error = self.compute_loss(y_val, self._forward_prop(X_val))  # Calcular error en validación
+
+                # Evaluar precisión y exactitud en entrenamiento
+                train_accuracy = self._calculate_accuracy(X_train, y_train)
+                train_precision = self._calculate_precision(X_train, y_train)
+
+                # Evaluar precisión y exactitud en validación
+                val_accuracy = self._calculate_accuracy(X_val, y_val)
+                val_precision = self._calculate_precision(X_val, y_val)
+
+                # Guardar errores, precisión y exactitud
+                fold_train_error_history.append(total_train_error)
+                fold_val_error_history.append(total_val_error)
+                fold_train_accuracy_history.append(train_accuracy)
+                fold_val_accuracy_history.append(val_accuracy)
+                fold_train_precision_history.append(train_precision)
+                fold_val_precision_history.append(val_precision)
                 
-                if total_error < self.error_threshold:
+                if total_train_error < self.error_threshold:
                     print(f"Convergence reached in epoch {epoch + 1}")
                     break
+
+            y_val_pred = self.predict(X_val)
+            y_val_pred_binary = (y_val_pred >= 0.5).astype(int).flatten()
+
+            # Comparar predicciones con los valores reales
+            for i, pred in enumerate(y_val_pred_binary):
+                correct = int(pred == y_val[i])
+                fold_correctness.append(correct)
+                fold_numbers.append(validation_indices[i])
+
+            # Guardar los resultados del fold
+            self.fold_results.append(fold_correctness)
+            self.fold_numbers.append(fold_numbers)
             
+            self.train_error_history.append(fold_train_error_history)
+            self.val_error_history.append(fold_val_error_history)
+            self.train_accuracy_history.append(fold_train_accuracy_history)
+            self.val_accuracy_history.append(fold_val_accuracy_history)
+            self.train_precision_history.append(fold_train_precision_history)
+            self.val_precision_history.append(fold_val_precision_history)
+
             accuracy = self._evaluate_fold(X_val, y_val)
             accuracies.append(accuracy)
-        
         average_accuracy = np.mean(accuracies)
         print(f"Average Accuracy over {self.k_folds} folds: {average_accuracy * 100:.2f}%")
         return average_accuracy
@@ -401,13 +458,36 @@ class multilayer_perceptron:
         return self._forward_prop(X)
 
     #### VISUALIZATION METHODS ####
-    def plot_error_history(self):
+    def plot_error_history_normal(self):
         plt.figure(figsize=(10, 6))
         plt.plot(range(1, len(self.error_history) + 1), self.error_history)
         plt.title('Error durante el entrenamiento')
         plt.xlabel('Época')
         plt.ylabel('Error')
         plt.show()
+
+    def plot_error_history_cross(self):
+        max_epochs = max(len(fold) for fold in self.train_error_history)
+
+        # Rellenar las listas más cortas con el último valor de error
+        padded_train_errors = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.train_error_history]
+        padded_val_errors = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.val_error_history]
+
+        # Promediar los errores por fold
+        avg_train_errors = np.mean(padded_train_errors, axis=0)
+        avg_val_errors = np.mean(padded_val_errors, axis=0)
+
+        # Graficar los errores de entrenamiento y validación
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(1, len(avg_train_errors) + 1), avg_train_errors, label='Error de Entrenamiento')
+        plt.plot(range(1, len(avg_val_errors) + 1), avg_val_errors, label='Error de Validación')
+
+        plt.title('Error durante el entrenamiento y validación (Cross-Validation)')
+        plt.xlabel('Época')
+        plt.ylabel('Error')
+        plt.legend()
+        plt.show()
+
 
     def plot_decision_boundary(self, X, y):
         # Only for 2D input
@@ -453,4 +533,154 @@ class multilayer_perceptron:
         plt.title(f'Mapa de calor de los pesos - Capa {layer}')
         plt.xlabel('Neuronas de salida')
         plt.ylabel('Neuronas de entrada')
+        plt.show()
+
+    def _calculate_accuracy(self, X, y):
+        correct_predictions = 0
+        total_predictions = len(X)
+
+        for x, y_true in zip(X, y):
+            x = x.reshape(1, -1)
+            output = self._forward_prop(x)
+            if self.problem_type == 'binary':
+                prediction = (output >= 0.5).astype(int)
+                correct_predictions += int(prediction == y_true)
+            elif self.problem_type == 'multiclass':
+                prediction = np.argmax(output, axis=1)
+                correct_predictions += int(prediction == np.argmax(y_true))
+
+        return correct_predictions / total_predictions
+
+    def _calculate_precision(self, X, y):
+        true_positive = 0
+        predicted_positive = 0
+
+        for x, y_true in zip(X, y):
+            x = x.reshape(1, -1)
+            output = self._forward_prop(x)
+            if self.problem_type == 'binary':
+                prediction = (output >= 0.5).astype(int)
+                true_positive += int(prediction == 1 and y_true == 1)
+                predicted_positive += int(prediction == 1)
+            elif self.problem_type == 'multiclass':
+                prediction = np.argmax(output, axis=1)
+                true_positive += int(prediction == np.argmax(y_true) and np.argmax(y_true) == 1)
+                predicted_positive += int(prediction == 1)
+
+        if predicted_positive == 0:
+            return 0
+        return true_positive / predicted_positive
+
+    def plot_metrics_history(self):
+        plt.figure(figsize=(18, 6))
+
+        # Asegurarse de que todas las listas tengan la misma longitud
+        max_epochs = max(len(fold) for fold in self.train_error_history)
+
+        # Rellenar listas
+        padded_train_errors = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.train_error_history]
+        padded_val_errors = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.val_error_history]
+        padded_train_accuracy = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.train_accuracy_history]
+        padded_val_accuracy = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.val_accuracy_history]
+        padded_train_precision = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.train_precision_history]
+        padded_val_precision = [fold + [fold[-1]] * (max_epochs - len(fold)) for fold in self.val_precision_history]
+
+        # Promedio de las métricas
+        avg_train_errors = np.mean(padded_train_errors, axis=0)
+        avg_val_errors = np.mean(padded_val_errors, axis=0)
+        avg_train_accuracy = np.mean(padded_train_accuracy, axis=0)
+        avg_val_accuracy = np.mean(padded_val_accuracy, axis=0)
+        avg_train_precision = np.mean(padded_train_precision, axis=0)
+        avg_val_precision = np.mean(padded_val_precision, axis=0)
+
+        # Gráfico de errores
+        plt.subplot(1, 3, 1)
+        plt.plot(range(1, len(avg_train_errors) + 1), avg_train_errors, label='Error de Entrenamiento')
+        plt.plot(range(1, len(avg_val_errors) + 1), avg_val_errors, label='Error de Validación')
+        plt.title('Error durante el entrenamiento y validación')
+        plt.xlabel('Época')
+        plt.ylabel('Error')
+        plt.legend()
+
+        # Gráfico de exactitud
+        plt.subplot(1, 3, 2)
+        plt.plot(range(1, len(avg_train_accuracy) + 1), avg_train_accuracy, label='Exactitud Entrenamiento')
+        plt.plot(range(1, len(avg_val_accuracy) + 1), avg_val_accuracy, label='Exactitud Validación')
+        plt.title('Exactitud durante el entrenamiento y validación')
+        plt.xlabel('Época')
+        plt.ylabel('Exactitud')
+        plt.legend()
+
+        # Gráfico de precisión
+        plt.subplot(1, 3, 3)
+        plt.plot(range(1, len(avg_train_precision) + 1), avg_train_precision, label='Precisión Entrenamiento')
+        plt.plot(range(1, len(avg_val_precision) + 1), avg_val_precision, label='Precisión Validación')
+        plt.title('Precisión durante el entrenamiento y validación')
+        plt.xlabel('Época')
+        plt.ylabel('Precisión')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
+
+    def plot_prediction_comparison(self):
+        
+                # Números del 0 al 9
+        numeros = np.arange(10)
+        paridad_real = numeros % 2  # Paridad real (0: par, 1: impar)
+
+        total_correct = 0  # Contador de predicciones correctas
+        total_predictions = 0  # Total de predicciones realizadas en validación
+
+        training_correct_x = []  # Lista para almacenar los números correctos de entrenamiento
+        training_correct_y = []  # Lista para almacenar la paridad correcta
+
+        plt.figure(figsize=(10, 6))
+
+        # Recorrer los resultados de cada fold
+        for fold_index in range(self.k_folds):
+            fold_correctness = self.fold_results[fold_index]
+            fold_numbers = self.fold_numbers[fold_index]
+
+            # Dibujar cada número evaluado en el fold
+            for i, num in enumerate(fold_numbers):
+                # Predicción de entrenamiento es correcta
+                plt.scatter(num, paridad_real[num], color='green', label='Training' if i == 0 and fold_index == 0 else '', marker='o', s=300)
+
+                # Si es correcto, guardamos los números para conectarlos después
+                training_correct_x.append(num)
+                training_correct_y.append(paridad_real[num])
+
+                # Si la predicción de validación fue correcta
+                if fold_correctness[i] == 1:
+                    plt.scatter(num, paridad_real[num], color='orange', label='Validation' if i == 0 and fold_index == 0 else '', marker='o', s=100)
+                    total_correct += 1  # Aumentar contador de predicciones correctas
+                else:
+                    # Si la predicción de validación fue incorrecta, colocar el círculo rojo en la posición predicha
+                    y_pred_wrong = 1 - paridad_real[num]  # Colocar en el valor contrario (si era par, lo pone en impar y viceversa)
+                    plt.scatter(num, y_pred_wrong, color='red', label='Validation Incorrecto' if i == 0 and fold_index == 0 else '', marker='o', s=100)
+
+                total_predictions += 1  # Aumentar el contador total de predicciones
+
+        # Conectar los puntos correctos de entrenamiento en orden
+        plt.plot(training_correct_x, training_correct_y, color='gray', linewidth=0.5)
+
+        # Calcular porcentaje de aciertos de validación
+        accuracy_validation = (total_correct / total_predictions) * 100
+
+        # Etiquetas de los ejes
+        plt.xlabel('Número')
+        plt.ylabel('Paridad (0: Par, 1: Impar)')
+        plt.title(f'Resultados de Cross-Validation: Predicciones por Fold\nPorcentaje de aciertos en validación: {accuracy_validation:.2f}%')
+
+        # Leyenda, solo mostrar Training y Validation
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys())
+
+        # Asegurar que se vean los números en el eje x
+        plt.xticks(numeros)
+        plt.grid(True)
+
+        # Mostrar gráfico
         plt.show()
