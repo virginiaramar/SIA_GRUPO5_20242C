@@ -1,22 +1,45 @@
 {
+    "architecture": {
+      "entry_layer_amount": 2,
+      "hidden_layer_neurons": [4, 6, 5],
+      "output_layer_amount": 2
+    },
+
     "seed": -1,
     "learning_constant": 0.2,
   
-    "limit": 10000,
+    "epoch": 10000,
     "epsilon": 0.001 ,
-    "batch_size": 1,
-  
-    "hidden_layer_amount": 2,
-    "neurons_per_layer": 5,
-  
+   
     "activation_function": {
-      "type": "logistic_function",
+      "hidden_function": "tanh",
+      "output_function": "sigmoid",
       "beta": 1
     },
+
+    "initialization_weights": {
+      "type": "random"
+    },
+
     "optimization_method": {
       "type": "momentum",
-      "alpha": 0.5
+      "momentum": {
+            "alpha": 0.9
+        },
+        "adam": {
+            "beta1": 0.9,
+            "beta2": 0.999,
+            "epsilon": 1e-8,
+            "alpha": 0.001
+        }
     },
+
+    "mode":  {
+        "type": "online",
+        "batch_size": 1
+      }
+    ,
+
     "generate_error_graph": true,
     "print_final_values": true
   }

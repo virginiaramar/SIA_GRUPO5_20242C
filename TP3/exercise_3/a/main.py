@@ -14,10 +14,10 @@ def main():
     input_data_xor = [[-1, 1], [1, -1], [-1, -1], [1, 1]]
     expected_output = [[1, 0], [1, 0], [0, 1], [0, 1]]
 
-    neuronNetwork = MultiPerceptron(2,
-                                    config["hidden_layer_amount"],
-                                    config["neurons_per_layer"],
-                                    2,
+    neuronNetwork = MultiPerceptron(config["architecture"]["entry_layer_amount"],
+                                    config["architecture"]["hidden_layer_amount"],
+                                    config["architecture"]["neurons_per_layer"],
+                                    config["architecture"]["output_layer_amount"],
                                     theta_logistic,
                                     theta_logistic_derivative,
                                     config["learning_constant"],
@@ -27,7 +27,7 @@ def main():
     start_time = time.time()
     error, w_min, metrics = neuronNetwork.train(
         config["epsilon"],
-        config["limit"],
+        config["epoch"],
         config["optimization_method"]["alpha"],
         input_data_xor,
         expected_output,
