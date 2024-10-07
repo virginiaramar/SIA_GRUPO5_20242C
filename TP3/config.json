@@ -5,10 +5,10 @@
         "problem_type": "multiclass"
     },
     "initial_parameters": {
-        "architecture": [35, 10,10],
+        "architecture": [35, 10,1],
         "learning_rate": 0.01,
         "epochs": 1000,
-        "mode": "online",
+        "mode": "batch",
         "minibatch_size": 5
     },
     "weights": {
@@ -23,7 +23,7 @@
         "threshold": 0.1
     },
     "optimizer": {
-        "type": "momentum",
+        "type": "adam",
         "adaptive_learning_rate": false,
         "lr_adjustment_value": 0.001,
         "momentum": {
@@ -37,7 +37,7 @@
         }
     },
     "cross_validation": {
-        "use_cross_validation": true,
+        "use_cross_validation": false,
         "k_folds": 5,
         "shuffle": false,
         "random_seed": 42
