@@ -67,6 +67,10 @@ def run_3b_exercise():
     #perceptron.plot_metrics_history()
     perceptron.plot_prediction_comparison()
 
+
+
+
+
 def run_3c_exercise(noise_type=None):
     # Cargar los datos originales
     data = np.genfromtxt('data/TP3-ej3-digitos.txt', delimiter=' ')
@@ -152,7 +156,7 @@ if __name__ == "__main__":
         run_3b_exercise()
     elif exercise == 3:
         #noise_type = input("Ingrese el tipo de ruido ('50_percent', '20_percent', '100_percent', 'salt_and_pepper', 'normal' o 'none'): ").strip()
-        noise_type='normal'
+        noise_type='20_percent'
         if noise_type == 'none':
             run_3c_exercise()
         else:

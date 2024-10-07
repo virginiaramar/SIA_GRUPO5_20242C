@@ -436,23 +436,26 @@ class multilayer_perceptron:
             self.learning_rate -= self.lr_adjustment_value * self.learning_rate
 
     #### EVALUATE THE OUTPUT ####
-    def evaluate(self):
-            correct_predictions = 0
-            for x, y_true in zip(self.X, self.y):
-                x = x.reshape(1, -1)
-                output = self._forward_prop(x)
-                if self.problem_type == 'binary':
-                    prediction = (output >= 0.5).astype(int)
-                    y_true = int(y_true)
-                    if prediction == y_true:
-                        correct_predictions += 1
-                elif self.problem_type == 'multiclass':
-                    prediction = np.argmax(output, axis=1)
-                    y_true_class = np.argmax(y_true)
-                    if prediction == y_true_class:
-                        correct_predictions += 1
-            accuracy = correct_predictions / len(self.X)
-            return accuracy
+    def evaluate(self, X=None, y=None):
+        if X is None or y is None:
+            X = self.X
+            y = self.y
+        correct_predictions = 0
+        for x, y_true in zip(self.X, self.y):
+            x = x.reshape(1, -1)
+            output = self._forward_prop(x)
+            if self.problem_type == 'binary':
+                prediction = (output >= 0.5).astype(int)
+                y_true = int(y_true)
+                if prediction == y_true:
+                    correct_predictions += 1
+            elif self.problem_type == 'multiclass':
+                prediction = np.argmax(output, axis=1)
+                y_true_class = np.argmax(y_true)
+                if prediction == y_true_class:
+                    correct_predictions += 1
+        accuracy = correct_predictions / len(self.X)
+        return accuracy
 
     def predict(self, X):
         return self._forward_prop(X)
