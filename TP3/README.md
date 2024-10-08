@@ -124,6 +124,8 @@ Este proyecto depende de las siguientes bibliotecas:
 
 ### Ejercicio 3
 
+# Multilayer Perceptron Implementation
+
 En este ejercicio se implementa un perceptrón multicapa en el cual se utiliza un config para poder meterle todos los datos de entrada.
 
 **Estructura del archivo config.json**
