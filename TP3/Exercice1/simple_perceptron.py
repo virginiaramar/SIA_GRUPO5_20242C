@@ -29,30 +29,7 @@ class Perceptron:
         predictions = []
         for x in X:
             pred = step_activation(np.dot(x, self.W))
-            predictions.append(pred)
-        return predictions
 
-    def plot_decision_boundary(self, X, y, epoch, title):
-        plt.figure(figsize=(8, 6))
-        for i, target in enumerate(y):
-            if target == 1:
-                plt.scatter(X[i, 0], X[i, 1], color='blue', marker='o', label="Class 1" if i == 0 else "")
-            else:
-                plt.scatter(X[i, 0], X[i, 1], color='red', marker='x', label="Class -1" if i == 0 else "")
-
-        x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-        y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
-        Z = np.c_[xx.ravel(), yy.ravel()]
-        Z = np.dot(np.c_[Z, np.ones(Z.shape[0])], self.W)
-        Z = Z.reshape(xx.shape)
-        plt.contourf(xx, yy, Z, levels=[-100, 0, 100], colors=['red', 'blue'], alpha=0.2)
-
-        plt.title(f"{title} - Epoch {epoch}")
-        plt.xlabel("X1")
-        plt.ylabel("X2")
-        plt.legend()
-        plt.show()
 
 
 # Main

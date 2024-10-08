@@ -37,7 +37,6 @@ def cross_validation(X, y, model_class, alpha, n_splits=5, n_epochs=20):
         model.fit(X_train, y_train, n_epochs)
 
         predictions = model.predict(X_test)
-
         mse = np.mean((predictions - y_test) ** 2)
         mses.append(mse)
 
@@ -75,5 +74,3 @@ if __name__ == '__main__':
     plt.legend()
     plt.grid(True)
     plt.show()
-
-
