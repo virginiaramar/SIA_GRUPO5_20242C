@@ -132,7 +132,7 @@ class multilayer_perceptron:
             elif self.weight_initialization == 'xavier':
                 # Xavier initialization (also known as Glorot initialization)
                 limit = np.sqrt(6 / (input_size + output_size))
-                weight_matrix = np.random.uniform(-limit, limit, (input_size, output_size))
+                weight_matrix = np.random.uniform(-0.01, 0.01, (input_size,output_size))
             elif self.weight_initialization == 'he':
                 # He initialization 
                 limit = np.sqrt(2 / input_size)
@@ -317,6 +317,7 @@ class multilayer_perceptron:
             raise ValueError("Invalid mode. Choose 'batch', 'mini-batch', 'online'.")
         
         return total_error
+    
 
     def _evaluate_fold(self, X_val, y_val):
         correct_predictions = 0
