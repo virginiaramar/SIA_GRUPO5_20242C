@@ -1,0 +1,14 @@
+1. If you increaase the generational gap for the elitist selection the algorithm becomes much faster but if you increase
+it too much you will converge too early.
+
+2. if the mutation rate is low and your stopping criteria is to find an acceptable solution you might never find one
+because the population converged and is too uniform
+
+3. The coeficients for attack and defense don't matter, there is always one that is going to be 0 with an optimal
+character. For example an optimal warrior will not go for 60% attack and 40% defense but will try to get 100% attack in
+order to get the best performance score.
+
+4. the most optimal number for a variable seems to be 80-90 because after that the tanh function has diminishing returns
+For example in order to get the maximum attack you need about 90 strength 80 dexterity/intelligence and 30 intelligence/dexterity.
+
+5. most optimal height for a maximum of ATM is 1.92 and for DTM is the minimum so 1.30
