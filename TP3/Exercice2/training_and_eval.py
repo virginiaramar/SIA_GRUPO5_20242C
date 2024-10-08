@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     plt.figure(figsize=(12, 6))
     plt.plot(range(1, 101), fixed_split_mses, label='Fixed Split MSEs', marker='o', linestyle='-', color='blue', markersize=3)
-    # plt.plot(range(1, 101), cross_val_mses, label='Cross-validation MSEs', marker='x', linestyle='--', color='orange', markersize=3)
+    plt.plot(range(1, 101), cross_val_mses, label='Cross-validation MSEs', marker='x', linestyle='--', color='orange', markersize=3)
     plt.title('MSE for Each Iteration: Fixed Split vs Cross-validation')
     plt.xlabel('Iteration')
     plt.ylabel('Mean Squared Error (MSE)')
