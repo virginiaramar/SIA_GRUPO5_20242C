@@ -16,6 +16,52 @@ Este proyecto implementa dos perceptrones, simple y multicapa. A su vez, el simp
 
 ### Ejercicio 1
 
+# Simple Perceptron Implementation
+
+## Descripción
+
+Este proyecto implementa un perceptrón simple utilizando las librerías NumPy y Matplotlib. El perceptrón es un modelo básico de aprendizaje automático que puede clasificar datos linealmente separables. Esta implementación permite entrenar el perceptrón en problemas lógicos como el **AND** y **XOR**, visualizando cómo la frontera de decisión cambia durante el entrenamiento.
+
+## Estructura del Código
+
+El código está compuesto por las siguientes partes principales:
+
+### 1. **Clase `Perceptron`**
+   - **Inicialización (`__init__`)**: Inicializa los pesos aleatoriamente y recibe un parámetro `alpha` que define la tasa de aprendizaje y `epsilon` umbral pequeño para controlar la actualización del peso
+   - **Método `step_activation(x)`**: Implementa la función de activación escalón que devuelve 1 si la entrada es mayor o igual a 0, o -1 en caso contrario.
+   - **Método `fit_with_plot(X, y, n_epochs, plot_interval, title)`**: Entrena el perceptrón utilizando un conjunto de datos `X` y sus etiquetas `y`. Además, genera un gráfico de la frontera de decisión en intervalos definidos por `plot_interval`.
+   - **Método `predict(X)`**: Realiza predicciones para nuevas muestras `X`.
+   - **Método `plot_decision_boundary(X, y, epoch, title)`**: Visualiza los datos y la frontera de decisión aprendida por el perceptrón.
+
+### 2. **Main (Entrenamiento y Visualización)**
+   - El código principal crea conjuntos de datos para los problemas lógicos **AND** y **XOR**. 
+   - Se entrena un perceptrón para cada problema, visualizando la frontera de decisión en cada época.
+
+## Requisitos
+
+Este código requiere las siguientes bibliotecas de Python:
+- **NumPy**: Para operaciones matriciales y manejo de datos.
+- **Matplotlib**: Para la visualización de los datos y las fronteras de decisión.
+
+
+## Ejecución
+
+Para ejecutar el código:
+1. Asegúrate de tener un entorno de Python configurado.
+2. Corre el script principal `simple_perceptron.py`
+
+
+Durante la ejecución, el perceptrón se entrenará y se visualizará la frontera de decisión en intervalos regulares de épocas para los problemas **AND** y **XOR**.
+
+## Resultados Esperados
+
+- Para el problema **AND**, el perceptrón debería converger y aprender la frontera de decisión adecuada.
+- Para el problema **XOR**, como los datos no son linealmente separables, el perceptrón no logrará encontrar una solución adecuada.
+
+## Personalización
+
+Puedes personalizar el número de épocas, la tasa de aprendizaje (`alpha`), y la frecuencia de visualización modificando los parámetros en las llamadas al método `fit_with_plot`.
+
 
 
 ### Ejercicio 2
