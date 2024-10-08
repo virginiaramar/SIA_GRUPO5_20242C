@@ -24,3 +24,4 @@ class Perceptron:
     def predict(self, X):
         X = np.c_[X, np.ones((X.shape[0]))]
         return [np.dot(x, self.W) for x in X]
+

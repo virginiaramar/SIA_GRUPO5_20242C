@@ -1,0 +1,4 @@
+{
+  "level_file": "levels\\level3.txt",
+  "algorithm": "iddfs"
+}
