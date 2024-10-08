@@ -18,8 +18,9 @@ class Perceptron:
             for (x, target) in zip(X, y):
                 p = step_activation(np.dot(x, self.W))
                 error = target - p
-                if abs(error) > self.epsilon:
-                    self.W += self.alpha * error * x
+                self.W += self.alpha * error * x
+                if abs(error)<self.epsilon:
+                    break
             if epoch % plot_interval == 0:
                 self.plot_decision_boundary(X[:, :-1], y, epoch, title)
 

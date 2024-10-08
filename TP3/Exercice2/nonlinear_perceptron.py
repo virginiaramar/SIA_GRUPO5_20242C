@@ -22,9 +22,9 @@ class NonLinearPerceptron:
             for (x, target) in zip(X, y):
                 p = tanh(np.dot(x, self.W))
                 error = target - p
-                if abs(error) > self.epsilon:
-                    self.W += self.alpha * error * tanh_derivative(p) * x
-
+                self.W += self.alpha * error * tanh_derivative(p) * x
+                if abs(error) < self.epsilon:
+                    break
     def predict(self, X):
         X = np.c_[X, np.ones((X.shape[0]))]
         predictions = []

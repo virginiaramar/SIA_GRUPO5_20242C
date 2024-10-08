@@ -15,8 +15,9 @@ class Perceptron:
             for (x, target) in zip(X, y):
                 pred = np.dot(x, self.W)
                 error = target - pred
-                if abs(error) > self.epsilon:
-                    self.W += self.alpha * error * x
+                self.W += self.alpha * error * x
+                if abs(error) < self.epsilon:
+                    break
                 epoch_loss += error ** 2
 
             mse = epoch_loss / len(X)

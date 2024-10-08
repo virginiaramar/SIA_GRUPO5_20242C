@@ -53,7 +53,7 @@ if __name__ == '__main__':
         mse_non_linear = cross_validation(X, y, NonLinearPerceptron, alpha=0.01, n_splits=5, n_epochs=20)
         cross_val_mses.append(mse_non_linear)
 
-        mse_train, mse_test = train_fixed_split(X, y, NonLinearPerceptron, alpha=0.01, n_epochs=20, split_ratio=0.2)
+        mse_train, mse_test = train_fixed_split(X, y, NonLinearPerceptron, n_epochs=20, split_ratio=0.2)
         fixed_split_mses.append(mse_test)
 
     avg_fixed_split_mse = np.mean(fixed_split_mses)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     plt.figure(figsize=(12, 6))
     plt.plot(range(1, 101), fixed_split_mses, label='Fixed Split MSEs', marker='o', linestyle='-', color='blue', markersize=3)
-    plt.plot(range(1, 101), cross_val_mses, label='Cross-validation MSEs', marker='x', linestyle='--', color='orange', markersize=3)
+    # plt.plot(range(1, 101), cross_val_mses, label='Cross-validation MSEs', marker='x', linestyle='--', color='orange', markersize=3)
     plt.title('MSE for Each Iteration: Fixed Split vs Cross-validation')
     plt.xlabel('Iteration')
     plt.ylabel('Mean Squared Error (MSE)')
