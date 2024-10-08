@@ -17,18 +17,17 @@ class NonLinearPerceptron:
 
     def fit(self, X, y, n_epochs=10):
         X = np.c_[X, np.ones((X.shape[0]))]
-
         for epoch in range(n_epochs):
+            converged = True
             for (x, target) in zip(X, y):
                 p = tanh(np.dot(x, self.W))
                 error = target - p
-                if abs(error) > self.epsilon:
-                    self.W += self.alpha * error * tanh_derivative(p) * x
+                self.W += self.alpha * error * tanh_derivative(p) * x
+                if abs(error) >= self.epsilon:
+                    converged = False
+            if converged:
+                break
 
     def predict(self, X):
         X = np.c_[X, np.ones((X.shape[0]))]
-        predictions = []
-        for x in X:
-            pred = tanh(np.dot(x, self.W))
-            predictions.append(pred)
-        return np.array(predictions)
+        return np.array([tanh(np.dot(x, self.W)) for x in X])
