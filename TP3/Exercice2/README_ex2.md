@@ -1,7 +1,3 @@
-To incorporate the new sections into the project, here's how the extended content fits into your initial project description. Below is an updated version of your project documentation including the changes you mentioned:
-
----
-
 # Perceptron Linear & Non-Linear Classification
 
 ## Descripción
@@ -56,26 +52,3 @@ Este proyecto depende de las siguientes bibliotecas:
 3. Corre el script principal `perceptron_comparison.py` para comparar los modelos lineal y no lineal.
 4. Corre el script principal `fitting.py` para comparar las diferentes métricas utilizando un tamaño de prueba del 20%.
 
-
-```bash
-python training_and_eval.py
-```
-
-3. Para correr las simulaciones y obtener las métricas adicionales, ejecuta `simulations.py`:
-
-```bash
-python simulations.py
-```
-
-El código cargará el conjunto de datos, entrenará los perceptrones lineal y no lineal, y mostrará las métricas y gráficos comparativos.
-
-## Resultados Esperados
-
-- **Perceptrón Lineal**: Se espera que funcione bien en datos linealmente separables pero podría no funcionar adecuadamente en datos no linealmente separables.
-- **Perceptrón No Lineal**: Utilizando la función tangente hiperbólica, puede clasificar datos no linealmente separables con mayor precisión.
-
-- **Métricas adicionales**: Los gráficos mostrarán la comparación de los errores (MSE, MAE) y el coeficiente de determinación (R²) en función del tamaño del conjunto de prueba, permitiendo evaluar el ajuste y la generalización de ambos modelos.
-
---- 
-
-This updated documentation includes the new files and methods, giving a detailed overview of both the classification functionality and the added metrics analysis.
