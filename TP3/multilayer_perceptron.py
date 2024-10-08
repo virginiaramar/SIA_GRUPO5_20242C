@@ -3,6 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
+import matplotlib.colors as mcolors
 
 class multilayer_perceptron:
     def __init__(self, config_file='config.json'):
@@ -108,6 +109,8 @@ class multilayer_perceptron:
 
         # Add new attributes for results visualization
         self.error_history = []
+        self.learning_rate_history = []  # Guardar el historial de tasas de aprendizaje
+        self.accuracy_history = [] 
 
     ##### INITIALIZE WEIGHTS #####   
     def _initialize_weights(self):
@@ -115,6 +118,7 @@ class multilayer_perceptron:
 
         self.weights = []  
         self.biases = []
+        self.weights_nact=[]
 
         for i in range(len(self.architecture) - 1):
             input_size = self.architecture[i] 
@@ -122,7 +126,7 @@ class multilayer_perceptron:
 
             if self.weight_initialization == 'random':
                 # Random weights between -0.01 and 0.01
-                weight_matrix = 2 * np.random.rand(input_size, output_size) - 1
+                weight_matrix = np.random.uniform(-0.01, 0.01, (input_size, output_size))
             elif self.weight_initialization == 'zero':
                 # Initialize all weights to zero
                 weight_matrix = np.zeros((input_size, output_size))
@@ -142,6 +146,7 @@ class multilayer_perceptron:
 
             self.weights.append(weight_matrix)
             self.biases.append(np.ones((1, output_size)))
+            self.weights_nact.append(weight_matrix.copy())
 
     ##### ERROR FUNCTIONS AND DERIVATIVES #####
     def compute_loss(self, y_true, output):
@@ -277,7 +282,8 @@ class multilayer_perceptron:
             
             if epoch % 100 == 0:
                 print(f"Epoch {epoch}, Error: {total_error}")
-        
+
+            self.final_weights_nact = [np.copy(w) for w in self.weights]
         return self.error_history
 
     def _train_epoch(self, X, y):
@@ -315,6 +321,10 @@ class multilayer_perceptron:
             total_error /= len(X)
         else:
             raise ValueError("Invalid mode. Choose 'batch', 'mini-batch', 'online'.")
+        
+        self.learning_rate_history.append(self.learning_rate)
+        accuracy = self._calculate_accuracy(X, y)
+        self.accuracy_history.append(accuracy)
         
         return total_error
 
@@ -363,12 +373,19 @@ class multilayer_perceptron:
             activation_function = self._get_activation_function(i)
             output = activation_function(z)
             self.activations.append(output)  # Save the output of this layer with the previous ones
+
+        if not hasattr(self, 'weights_nact_saved'):  # Solo la primera vez
+            self.weights_nact = [np.copy(w) for w in self.weights]
+            self.weights_nact_saved = True 
+
         return self.activations[-1] 
 
     ##### BACKWARD PROPAGATION ##### 
     def _back_prop(self, error):
         delta_vec = []
         for i in reversed(range(len(self.weights))):
+
+
             if i == len(self.weights) - 1 and self.output_function == 'softmax':
                 # Usamos la derivada especial para softmax
                 delta = self.compute_output_delta(self.activations[i + 1], error)
@@ -444,17 +461,20 @@ class multilayer_perceptron:
         for x, y_true in zip(self.X, self.y):
             x = x.reshape(1, -1)
             output = self._forward_prop(x)
+
             if self.problem_type == 'binary':
                 prediction = (output >= 0.5).astype(int)
                 y_true = int(y_true)
                 if prediction == y_true:
                     correct_predictions += 1
+
             elif self.problem_type == 'multiclass':
                 prediction = np.argmax(output, axis=1)
                 y_true_class = np.argmax(y_true)
                 if prediction == y_true_class:
                     correct_predictions += 1
-        accuracy = correct_predictions / len(self.X)
+
+        accuracy = correct_predictions / len(X)
         return accuracy
 
     def predict(self, X):
@@ -575,7 +595,7 @@ class multilayer_perceptron:
         return true_positive / predicted_positive
 
     def plot_metrics_history(self):
-        plt.figure(figsize=(18, 6))
+        plt.figure(figsize=(10, 6))
 
         # Asegurarse de que todas las listas tengan la misma longitud
         max_epochs = max(len(fold) for fold in self.train_error_history)
@@ -597,33 +617,47 @@ class multilayer_perceptron:
         avg_val_precision = np.mean(padded_val_precision, axis=0)
 
         # Gráfico de errores
-        plt.subplot(1, 3, 1)
+        plt.figure(figsize=(10, 6))
         plt.plot(range(1, len(avg_train_errors) + 1), avg_train_errors, label='Error de Entrenamiento')
         plt.plot(range(1, len(avg_val_errors) + 1), avg_val_errors, label='Error de Validación')
         plt.title('Error durante el entrenamiento y validación')
         plt.xlabel('Época')
         plt.ylabel('Error')
         plt.legend()
+        plt.show()
 
         # Gráfico de exactitud
-        plt.subplot(1, 3, 2)
+        plt.figure(figsize=(10, 6))
         plt.plot(range(1, len(avg_train_accuracy) + 1), avg_train_accuracy, label='Exactitud Entrenamiento')
         plt.plot(range(1, len(avg_val_accuracy) + 1), avg_val_accuracy, label='Exactitud Validación')
         plt.title('Exactitud durante el entrenamiento y validación')
         plt.xlabel('Época')
         plt.ylabel('Exactitud')
         plt.legend()
+        plt.show()
 
         # Gráfico de precisión
-        plt.subplot(1, 3, 3)
+        plt.figure(figsize=(10, 6))
         plt.plot(range(1, len(avg_train_precision) + 1), avg_train_precision, label='Precisión Entrenamiento')
         plt.plot(range(1, len(avg_val_precision) + 1), avg_val_precision, label='Precisión Validación')
         plt.title('Precisión durante el entrenamiento y validación')
         plt.xlabel('Época')
         plt.ylabel('Precisión')
         plt.legend()
+        plt.show()
 
-        plt.tight_layout()
+        min_length = min(len(self.learning_rate_history), len(avg_val_accuracy))
+
+        # Truncar las listas para que coincidan
+        truncated_learning_rate_history = self.learning_rate_history[:min_length]
+        truncated_val_accuracy = avg_val_accuracy[:min_length]
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(truncated_learning_rate_history, truncated_val_accuracy, marker='o', color='b')
+        plt.title('Learning Rate vs Validation Accuracy')
+        plt.xlabel('Learning Rate')
+        plt.ylabel('Validation Accuracy')
+        plt.grid(True)
         plt.show()
 
     def plot_prediction_comparison(self):
@@ -687,3 +721,94 @@ class multilayer_perceptron:
 
         # Mostrar gráfico
         plt.show()
+
+    
+
+    
+
+    def visualize_weights_per_layer(self):
+        plot_weight_histograms(self.weights_nact, self.final_weights_nact)
+        
+
+def plot_weight_histograms(initial_weights, final_weights,show_flat_histogram=True):
+
+    fig, axs = plt.subplots(1, 2, figsize=(20, 6))  # Crear dos gráficos en paralelo
+    
+    # Colores nuevos: paleta de azul a morado
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+
+
+    # Limitar a las primeras 5 capas o menos si hay menos capas
+    num_layers_to_plot = min(3, len(initial_weights))
+    
+    # Mayor separación entre las capas en el eje Y
+    vertical_offset = 1.3
+
+    # Función para comprobar si todos los valores en un array son iguales
+    def are_all_values_identical(arr):
+        return np.all(arr == arr[0])
+
+    # Función para generar un histograma ajustado
+    def generate_histogram(ax, weights, title):
+        for i in range(num_layers_to_plot):
+            weight_matrix = weights[i]
+            flattened_weights = weight_matrix.flatten()
+            
+            # Comprobar si todos los pesos son iguales
+            if are_all_values_identical(flattened_weights):
+                # Generar un pico vertical en el histograma si todos los pesos son iguales
+                bin_edges = np.linspace(-0.02, 0.02, 51)
+                bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+                
+                y_offset = vertical_offset * (num_layers_to_plot - i)
+                
+                # Crear una única barra en el valor correspondiente si todos los valores son iguales
+                counts = np.zeros(len(bin_edges) - 1)
+                bin_index = np.digitize(0, bin_edges) - 1  # Forzar a que caiga en el bin de 0
+                counts[bin_index] = 1  # Colocar todo el peso en ese bin
+                print(f"Capa {i+1} ({title}): Todos los pesos son {flattened_weights[0]}.")
+
+                # Crear la línea vertical para representar el "pico" y añadirla a la leyenda
+                line = ax.vlines(0, y_offset, y_offset + 1, color=colors[i % len(colors)], linewidth=5)
+                line.set_label(f'Capa {i+1}')  # Añadir etiqueta manualmente
+            else:
+                # Intentar crear el histograma, pero comprobar si la suma de counts es cero
+                counts, bin_edges = np.histogram(flattened_weights, bins=50, density=False)  # Sin normalizar
+                if counts.sum() == 0:
+                    print(f"Capa {i+1} ({title}): Todos los pesos son ceros, no se puede normalizar el histograma.")
+                    continue
+
+                counts = counts / counts.sum()  # Normalizar manualmente
+
+                bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+                y_offset = vertical_offset * (num_layers_to_plot - i)  # Desplazar cada capa verticalmente
+                fill_color = colors[i % len(colors)]  # Asignar un color a cada capa
+                ax.plot(bin_centers, counts + y_offset, label=f'Capa {i+1}', color=fill_color)
+                ax.fill_between(bin_centers, y_offset, counts + y_offset, color=fill_color, alpha=0.5)
+
+        ax.set_title(f'Distribución de Pesos ({title})')
+        ax.set_xlabel('Valor de los Pesos')
+        ax.set_ylabel('Capas (línea base por capa)')
+        ax.set_yticks(ticks=np.arange(1, num_layers_to_plot + 1) * vertical_offset)
+        ax.legend(loc='upper right')
+        ax.grid(True)
+
+        fig.suptitle('Comparación de Pesos Iniciales y Finales con Inicialización HE', fontsize=16)
+
+    # Generar gráfico para los pesos iniciales
+    generate_histogram(axs[0], initial_weights, 'iniciales')
+
+    # Generar gráfico para los pesos finales
+    generate_histogram(axs[1], final_weights, 'finales')
+
+    # Alinear los ejes Y para ambos gráficos
+    max_y = max(axs[0].get_ylim()[1], axs[1].get_ylim()[1])
+    axs[0].set_ylim(0, max_y)
+    axs[1].set_ylim(0, max_y)
+
+    plt.savefig(f"C:/Users/virgi/OneDrive/Escritorio/ITBA/SIA/TP0/TP3/RESULTADOS_3B/he_pesos.png")
+    plt.close()
+
+    plt.tight_layout()
+    plt.show()
+

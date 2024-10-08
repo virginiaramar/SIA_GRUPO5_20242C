@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-import json
 import seaborn as sns
 from noise import NoiseGenerator
+import os
 
 
 from multilayer_perceptron import multilayer_perceptron 
@@ -64,8 +64,11 @@ def run_3b_exercise():
     perceptron.evaluate()
     #perceptron.plot_error_history()
     #perceptron.plot_error_history_cross()
-    #perceptron.plot_metrics_history()
+    perceptron.plot_metrics_history()
     perceptron.plot_prediction_comparison()
+    #perceptron.visualize_weights_per_layer()
+    
+    
 
 
 
@@ -85,6 +88,7 @@ def run_3c_exercise(noise_type=None):
     
     print("Evaluando la red neuronal con datos originales...")
     accuracy = perceptron.evaluate()
+    precision = perceptron._calculate_precision(data_flatten, labels)
 
     # Generar heatmap para datos originales
     predictions = perceptron.predict(data_flatten)
@@ -121,6 +125,7 @@ def run_3c_exercise(noise_type=None):
         elif noise_type == 'normal':
             noisy_data = noise_generator.add_noise(data_flatten)
 
+       
         # Evaluación con datos ruidosos
         noisy_accuracy = perceptron.evaluate(noisy_data, labels)
 
@@ -143,6 +148,36 @@ def run_3c_exercise(noise_type=None):
         plt.show()
 
         print("Heatmap guardado como 'heatmap_digitos_ruidosos.png'.")
+
+        noisy_accuracy = perceptron.evaluate(noisy_data, labels)
+        noisy_precision = perceptron._calculate_precision(noisy_data, labels)
+
+        plot_metrics_comparison(accuracy, precision, noisy_accuracy, noisy_precision)
+
+        perceptron.plot_error_history()
+
+def plot_metrics_comparison(train_accuracy, train_precision, test_accuracy, test_precision):
+    plt.figure(figsize=(12, 6))
+
+    # Gráfico de exactitud
+    plt.subplot(1, 2, 1)
+    bar_labels = ['Entrenamiento (sin ruido)', 'Prueba (con ruido)']
+    accuracies = [train_accuracy, test_accuracy]
+    plt.bar(bar_labels, accuracies, color=['blue', 'orange'])
+    plt.title('Comparación de Exactitud')
+    plt.ylabel('Exactitud')
+
+    # Gráfico de precisión
+    plt.subplot(1, 2, 2)
+    precisions = [train_precision, test_precision]
+    plt.bar(bar_labels, precisions, color=['blue', 'orange'])
+    plt.title('Comparación de Precisión')
+    plt.ylabel('Precisión')
+
+    plt.tight_layout()
+    plt.show()
+
+        
 
 
 

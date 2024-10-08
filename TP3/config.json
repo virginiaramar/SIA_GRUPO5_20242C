@@ -5,7 +5,7 @@
         "problem_type": "multiclass"
     },
     "initial_parameters": {
-        "architecture": [35, 10,1],
+        "architecture": [35,20,10,10],
         "learning_rate": 0.01,
         "epochs": 1000,
         "mode": "batch",
@@ -15,15 +15,15 @@
         "initialization": "xavier"
     },
     "activation_function": {
-        "function": "relu",
-        "output_function": "softmax",
+        "function": "tanh",
+        "output_function": "sigmoid",
         "beta": 1.0
     },
     "error": {
         "threshold": 0.1
     },
     "optimizer": {
-        "type": "adam",
+        "type": "momentum",
         "adaptive_learning_rate": false,
         "lr_adjustment_value": 0.001,
         "momentum": {
