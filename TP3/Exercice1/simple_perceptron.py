@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class Perceptron:
-    def __init__(self, N, alpha=0.1, epsilon=1e-5):
+    def __init__(self, N, alpha=0.1, epsilon=0.1):
         self.W = np.random.randn(N + 1) / np.sqrt(N)  # N is the number of input features
         self.alpha = alpha
         self.epsilon = epsilon
