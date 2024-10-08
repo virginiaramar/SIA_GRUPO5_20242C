@@ -1,41 +1,31 @@
 import csv
 import numpy as np
+from matplotlib import pyplot as plt
 
-from Exercice2.linear_perceptron import Perceptron
+from Exercice2.fitting import load_data
 from Exercice2.nonlinear_perceptron import NonLinearPerceptron
 
 
-# Load CSV data manually
-def load_data(filename):
-    with open(filename, 'r') as file:
-        data = file.readlines()
 
-    X = []
-    y = []
+def train_fixed_split(X, y, model_class, n_epochs=20, split_ratio=0.8):
+    split_idx = int(split_ratio * len(X))
+    X_train, X_test = X[:split_idx], X[split_idx:]
+    y_train, y_test = y[:split_idx], y[split_idx:]
 
-    for row in data[1:]:  # Skipping the header
-        values = row.strip().split(',')
-        features = [float(values[0]), float(values[1]), float(values[2])]
-        target = float(values[3])
+    model = model_class(N=X_train.shape[1])
+    model.fit(X_train, y_train, n_epochs)
 
-        X.append(features)
-        y.append(target)
+    train_predictions = model.predict(X_train)
+    mse_train = np.mean((train_predictions - y_train) ** 2)
 
-    X = np.array(X)
-    y = np.array(y)
+    test_predictions = model.predict(X_test)
+    mse_test = np.mean((test_predictions - y_test) ** 2)
 
-    # Normalize y values to range [-1, 1]
-    y_min, y_max = np.min(y), np.max(y)
-    y_normalized = 2 * (y - y_min) / (y_max - y_min) - 1
-    y_threshold = np.where(y_normalized >= 0, 1, -1)
+    return mse_train, mse_test
 
-    return X, y_threshold
-
-
-
-def cross_validation(X, y, model_class, alpha, n_splits=5, n_epochs=10):
+def cross_validation(X, y, model_class, alpha, n_splits=5, n_epochs=20):
     split_size = len(X) // n_splits
-    accuracies = []
+    mses = []
 
     for i in range(n_splits):
         X_test = X[i * split_size:(i + 1) * split_size]
@@ -47,19 +37,43 @@ def cross_validation(X, y, model_class, alpha, n_splits=5, n_epochs=10):
         model.fit(X_train, y_train, n_epochs)
 
         predictions = model.predict(X_test)
-        accuracy = np.mean(predictions == y_test)
-        print("accuracy",accuracy)
-        accuracies.append(accuracy)
 
-    return np.mean(accuracies)
+        mse = np.mean((predictions - y_test) ** 2)
+        mses.append(mse)
 
+    return np.mean(mses)
 
 if __name__ == '__main__':
-    # Load dataset
     X, y = load_data('TP3-ej2-conjunto.csv')
 
-    accuracy_linear = cross_validation(X, y, Perceptron, alpha=0.1, n_splits=5, n_epochs=10)
-    print(f'Linear aerceptron accuracy: {accuracy_linear * 100:.2f}%')
+    cross_val_mses = []
+    fixed_split_mses = []
 
-    accuracy_non_linear = cross_validation(X, y, NonLinearPerceptron, alpha=0.1, n_splits=5, n_epochs=10)
-    print(f'Non-Linear perceptron accuracy: {accuracy_non_linear * 100:.2f}%')
+    for _ in range(100):
+        mse_non_linear = cross_validation(X, y, NonLinearPerceptron, alpha=0.01, n_splits=5, n_epochs=20)
+        cross_val_mses.append(mse_non_linear)
+
+        mse_train, mse_test = train_fixed_split(X, y, NonLinearPerceptron, alpha=0.01, n_epochs=20, split_ratio=0.2)
+        fixed_split_mses.append(mse_test)
+
+    avg_fixed_split_mse = np.mean(fixed_split_mses)
+    avg_cross_val_mse = np.mean(cross_val_mses)
+    worst_fixed_split_mse = np.max(fixed_split_mses)
+    worst_cross_val_mse = np.max(cross_val_mses)
+
+    print(f'Cross-validation average MSE: {avg_cross_val_mse:.4f}')
+    print(f'Fixed split average MSE: {avg_fixed_split_mse:.4f}')
+    print(f'Cross-validation worst MSE: {worst_cross_val_mse:.4f}')
+    print(f'Fixed split worst MSE: {worst_fixed_split_mse:.4f}')
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(range(1, 101), fixed_split_mses, label='Fixed Split MSEs', marker='o', linestyle='-', color='blue', markersize=3)
+    plt.plot(range(1, 101), cross_val_mses, label='Cross-validation MSEs', marker='x', linestyle='--', color='orange', markersize=3)
+    plt.title('MSE for Each Iteration: Fixed Split vs Cross-validation')
+    plt.xlabel('Iteration')
+    plt.ylabel('Mean Squared Error (MSE)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+

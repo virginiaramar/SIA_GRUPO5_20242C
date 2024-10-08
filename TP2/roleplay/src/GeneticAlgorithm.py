@@ -34,7 +34,7 @@ class GeneticAlgorithm:
         population = []
         for _ in range(self.population_size):
             character_class = population_class
-            total_points = random.randint(100, 200)
+            total_points = 200
 
             character = Character(character_class, total_points)
             population.append(character)
