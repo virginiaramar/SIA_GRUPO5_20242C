@@ -352,5 +352,56 @@ def plot_mse_across_epochs_comparison(mse_variable, mse_lr_0_02, mse_lr_0_1, mse
     plt.show()
 
 # Llamar a la función para mostrar el gráfico del MSE comparativo
-plot_mse_across_epochs_comparison(mse_variable_lr, mse_fixed_lr_0_02, mse_fixed_lr_0_1,mse_fixed_lr_0_001)
+#plot_mse_across_epochs_comparison(mse_variable_lr, mse_fixed_lr_0_02, mse_fixed_lr_0_1,mse_fixed_lr_0_001)
+
+
+
+def plot_pc1_comparison_oja_pca(countries, X_normalized, w_oja, pca_components):
+    # Calcular los valores de PC1 para cada país usando Oja y PCA
+    pc1_values_oja = np.dot(X_normalized, w_oja)
+    pc1_values_pca = np.dot(X_normalized, pca_components)
+
+    # Crear DataFrame para almacenar los valores de PC1 para cada método y calcular las diferencias
+    df_pc1_comparison = pd.DataFrame({
+        "Country": countries,
+        "PC1_Oja": pc1_values_oja,
+        "PC1_PCA": pc1_values_pca,
+        "Difference": pc1_values_pca - pc1_values_oja
+    })
+    df_pc1_comparison_sorted = df_pc1_comparison.sort_values(by="PC1_Oja")
+
+    # Graficar cajas comparativas para cada país con superposición y transparencia
+    plt.figure(figsize=(12, 10))
+    bars_oja = plt.barh(df_pc1_comparison_sorted['Country'], df_pc1_comparison_sorted['PC1_Oja'], color='#d62728', alpha=0.7, label='Oja PC1')
+    bars_pca = plt.barh(df_pc1_comparison_sorted['Country'], df_pc1_comparison_sorted['PC1_PCA'], color='#17becf', alpha=0.5, label='PCA PC1')
+
+
+
+
+
+    # Añadir etiquetas de diferencia a la izquierda o derecha según el valor de PC1
+    for bar_oja, bar_pca, diff, pc1_oja, pc1_pca in zip(bars_oja, bars_pca, df_pc1_comparison_sorted['Difference'], df_pc1_comparison_sorted['PC1_Oja'], df_pc1_comparison_sorted['PC1_PCA']):
+        # Determinar la barra más larga y la posición del texto
+        if abs(pc1_oja) > abs(pc1_pca):
+            max_bar = bar_oja
+        else:
+            max_bar = bar_pca
+
+        # Colocar el texto de la diferencia a la izquierda o derecha según el valor de PC1
+        width_max_bar = max_bar.get_width()
+        if width_max_bar < 0:
+            plt.text(width_max_bar - 0.05, max_bar.get_y() + max_bar.get_height() / 2, f'{diff:.2f}', va='center', ha='right', color='black')
+        else:
+            plt.text(width_max_bar + 0.05, max_bar.get_y() + max_bar.get_height() / 2, f'{diff:.2f}', va='center', ha='left', color='black')
+
+    plt.xlabel('PC1')
+    plt.title('Comparación de Valores de PC1 para los Países Europeos (Oja vs. PCA)')
+    plt.grid(True, axis='x', linestyle='--', alpha=0.5)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+# Llamar a la función
+plot_pc1_comparison_oja_pca(countries, X_normalized, w_oja, pca.components_[0])
+
 
