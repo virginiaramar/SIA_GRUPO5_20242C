@@ -1,0 +1,13 @@
+{
+    "data_path": "data/europe.csv",
+    "output_dir": "output",
+    "grid_size": 4,
+    "learning_rate": 0.001,
+    "initial_radius": 5,
+    "n_iterations": 10000,
+    "weights_init": "sample",
+    "distance_metric": "euclidean",
+    "plot_feature_heatmaps": true,
+    "constant_radius": false
+}
+
