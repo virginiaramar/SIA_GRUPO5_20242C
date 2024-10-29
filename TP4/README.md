@@ -6,8 +6,8 @@
 - **Pluss, Ramiro** - 66254
 - **Kuchukhidze, Giorgi** - 67262
 
-## Overview
-This project explores the implementation of a Hopfield Network, which is trained on various letter patterns and tested for pattern recognition accuracy under different conditions, such as increasing levels of noise and repeated trials.
+## Exercise 2
+This exercise explores the implementation of a Hopfield Network, which is trained on various letter patterns and tested for pattern recognition accuracy under different conditions, such as increasing levels of noise and repeated trials.
 
 ## Instructions
 
