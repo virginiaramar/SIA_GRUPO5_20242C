@@ -79,7 +79,7 @@ for letter, pattern in patterns.items():
 
     predicted_pattern = noisy_pattern
     for _ in range(5):
-        predicted_pattern = hopfield_net.predict([predicted_pattern], iterations=1, threshold=0.5, async_update=True)[0]
+        predicted_pattern = hopfield_net.predict([predicted_pattern], iterations=1, threshold=0, async_update=True)[0]
         steps.append(predicted_pattern.reshape(5, 5))
 
     display_multiple_steps(steps, title=f"Steps for '{letter}' Pattern")
