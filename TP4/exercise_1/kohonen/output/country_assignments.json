@@ -1,0 +1,156 @@
+{
+  "Neurona (3, 3)": {
+    "countries": [
+      "Austria",
+      "Denmark",
+      "Iceland",
+      "Ireland",
+      "Luxembourg",
+      "Netherlands",
+      "Norway",
+      "Switzerland"
+    ],
+    "count": 8,
+    "average_values": {
+      "Area": -0.4782469053420137,
+      "GDP": 1.0806479350293057,
+      "Inflation": -0.6047473680758197,
+      "Life.expect": 0.6857322074233286,
+      "Military": -0.7066497962293771,
+      "Pop.growth": 1.0024078072683398,
+      "Unemployment": -0.8455124961172559
+    }
+  },
+  "Neurona (2, 3)": {
+    "countries": [
+      "Belgium"
+    ],
+    "count": 1,
+    "average_values": {
+      "Area": -0.8359872436825724,
+      "GDP": 0.417061386853965,
+      "Inflation": 0.11444681374338085,
+      "Life.expect": 0.48775597058865483,
+      "Military": -0.388952392658045,
+      "Pop.growth": -0.11592717684346539,
+      "Unemployment": -0.592441859348367
+    }
+  },
+  "Neurona (0, 0)": {
+    "countries": [
+      "Bulgaria",
+      "Estonia",
+      "Hungary",
+      "Latvia",
+      "Lithuania",
+      "Poland",
+      "Slovakia",
+      "Ukraine"
+    ],
+    "count": 8,
+    "average_values": {
+      "Area": 0.00993021937441646,
+      "GDP": -1.0049097878074793,
+      "Inflation": 0.9975080243315132,
+      "Life.expect": -1.3187771905277688,
+      "Military": -0.018834917497443295,
+      "Pop.growth": -1.0288536944857551,
+      "Unemployment": 0.4171194980845125
+    }
+  },
+  "Neurona (0, 2)": {
+    "countries": [
+      "Croatia",
+      "Greece",
+      "Portugal"
+    ],
+    "count": 3,
+    "average_values": {
+      "Area": -0.44831102231928915,
+      "GDP": -0.6526354474181009,
+      "Inflation": -0.17687234851249792,
+      "Life.expect": 0.039648466785433434,
+      "Military": 1.7671539862460615,
+      "Pop.growth": -0.13621443279107182,
+      "Unemployment": 1.308762637668089
+    }
+  },
+  "Neurona (1, 3)": {
+    "countries": [
+      "Czech Republic"
+    ],
+    "count": 1,
+    "average_values": {
+      "Area": -0.5386184998992729,
+      "GDP": -0.33430115975726726,
+      "Inflation": -1.0508298352801342,
+      "Life.expect": -0.23709250943508284,
+      "Military": -0.5795708348008444,
+      "Pop.growth": -0.5013850398479878,
+      "Unemployment": -0.3094381365100396
+    }
+  },
+  "Neurona (3, 0)": {
+    "countries": [
+      "Finland",
+      "Germany"
+    ],
+    "count": 2,
+    "average_values": {
+      "Area": 1.1144543406403533,
+      "GDP": 0.36439578779243004,
+      "Inflation": -0.32253192964043736,
+      "Life.expect": 0.5356534472422028,
+      "Military": 0.18290293377035252,
+      "Pop.growth": -0.3695178761885459,
+      "Unemployment": -0.6577504107725964
+    }
+  },
+  "Neurona (3, 1)": {
+    "countries": [
+      "Italy",
+      "Sweden",
+      "United Kingdom"
+    ],
+    "count": 3,
+    "average_values": {
+      "Area": 1.0170405832339975,
+      "GDP": 0.2836418692314097,
+      "Inflation": 0.09017021688872429,
+      "Life.expect": 0.9411854162422676,
+      "Military": 0.5006003373416846,
+      "Pop.growth": 0.5062153388831322,
+      "Unemployment": -0.4182857222170886
+    }
+  },
+  "Neurona (1, 2)": {
+    "countries": [
+      "Slovenia"
+    ],
+    "count": 1,
+    "average_values": {
+      "Area": -0.8990732915424317,
+      "GDP": -0.21492580188445465,
+      "Inflation": -1.1236596258441038,
+      "Life.expect": -0.20516085833271294,
+      "Military": 0.11936345305608607,
+      "Pop.growth": -0.6231085755336264,
+      "Unemployment": 0.40895592915648404
+    }
+  },
+  "Neurona (0, 3)": {
+    "countries": [
+      "Spain"
+    ],
+    "count": 1,
+    "average_values": {
+      "Area": 2.085115158840225,
+      "GDP": -0.09555044401164206,
+      "Inflation": -0.1768723485124978,
+      "Life.expect": 1.0050487184469996,
+      "Military": -0.516031354086578,
+      "Pop.growth": 1.0810209240653148,
+      "Unemployment": 2.5641381261560543
+    }
+  }
+}
