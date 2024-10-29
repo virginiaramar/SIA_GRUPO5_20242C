@@ -6,6 +6,18 @@
 - **Pluss, Ramiro** - 66254
 - **Kuchukhidze, Giorgi** - 67262
 
+
+## Exercise 1.2
+This exercise applies Oja’s rule to analyze socio-economic data from European countries, identifying the principal component (PC1) and comparing it to standard PCA. The analysis observes feature contributions to PC1 and examines the impact of learning rates on Oja’s rule convergence relative to traditional PCA.
+
+## Instructions
+- Run the exercise by executing `oja.py`.
+- To adjust settings like the number of epochs or learning rate, modify the parameters directly within the function definitions.
+- To display or hide specific graphs:
+   - Simply uncomment or comment the line that calls the corresponding function in `oja.py`.
+- Ensure all necessary libraries are installed to avoid any runtime issues.
+
+
 ## Exercise 2
 This exercise explores the implementation of a Hopfield Network, which is trained on various letter patterns and tested for pattern recognition accuracy under different conditions, such as increasing levels of noise and repeated trials.
 
