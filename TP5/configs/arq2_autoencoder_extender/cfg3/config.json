@@ -1,0 +1,15 @@
+{
+    "file_path": "font.h",
+    "input_dim": 35,
+    "hidden_dim1": 16,
+    "hidden_dim2": 8,
+    "latent_dim": 2,
+    "initial_lr": 0.1,
+    "decay_rate": 0.999,
+    "learning_rate": 0.01,
+    "epochs": 13000,
+    "activation_fn": "relu",
+    "activation_derivative_fn": "relu_derivative",
+    "variable_lr": true,
+    "loss_function": "cross_entropy"
+}
