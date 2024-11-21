@@ -212,3 +212,127 @@ class Autoencoder:
         latent_space = activations[f"A{latent_layer_index}"]
         return latent_space
 
+    def save_weights(self, filepath):
+        """
+        Guarda los pesos y sesgos del modelo en un archivo.
+
+        Args:
+            filepath (str): Ruta donde guardar los parámetros del modelo.
+        """
+        import pickle
+
+        # Crear un diccionario con los pesos y sesgos
+        model_parameters = {
+            'weights': self.weights,
+            'biases': self.biases
+        }
+
+        # Guardar en un archivo utilizando pickle
+        with open(filepath, 'wb') as file:
+            pickle.dump(model_parameters, file)
+        print(f"Pesos y sesgos guardados en: {filepath}")
+
+    def decode_latent_points(self, latent_points):
+        """
+        Decodifica puntos del espacio latente para generar reconstrucciones.
+
+        Args:
+            latent_points (np.ndarray): Puntos en el espacio latente (de dimensión igual a la capa latente).
+
+        Returns:
+            np.ndarray: Reconstrucciones generadas por el decodificador.
+        """
+        # Comenzar desde la capa latente
+        activations = {f"A{self.latent_layer_index}": latent_points}
+
+        # Pasar los puntos por el decodificador
+        for i in range(self.latent_layer_index + 1, len(self.layers)):
+            W = self.weights[f"W{i}"]
+            b = self.biases[f"b{i}"]
+            Z = np.dot(activations[f"A{i-1}"], W) + b
+
+            if i == len(self.layers) - 1:
+                # Última capa usa sigmoid
+                A = sigmoid(Z)
+            else:
+                # Capas ocultas usan la función de activación
+                A = self.activation_fn(Z)
+
+            activations[f"A{i}"] = A
+
+        # Salida final del decodificador
+        return activations[f"A{len(self.layers) - 1}"]
+    
+    def plot_latent_space_with_generated(self, training_latent_points, character_labels, num_generated_points, save_path=None):
+        """
+        Grafica el espacio latente con puntos de entrenamiento y puntos generados aleatoriamente
+        dentro del rango del conjunto de entrenamiento.
+
+        Args:
+            training_latent_points (np.ndarray): Puntos del espacio latente del conjunto de entrenamiento.
+            character_labels (list): Etiquetas de los caracteres correspondientes a los puntos de entrenamiento.
+            num_generated_points (int): Número de nuevos puntos generados aleatoriamente.
+            save_path (str, optional): Ruta para guardar el gráfico. Si no se proporciona, muestra el gráfico.
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        # Obtener rangos del conjunto de entrenamiento
+        dim1_min, dim1_max = training_latent_points[:, 0].min(), training_latent_points[:, 0].max()
+        dim2_min, dim2_max = training_latent_points[:, 1].min(), training_latent_points[:, 1].max()
+
+        # Generar nuevos puntos aleatorios dentro del rango observado
+        random_latent_points = np.random.uniform(
+            low=[dim1_min, dim2_min],
+            high=[dim1_max, dim2_max],
+            size=(num_generated_points, 2)
+        )
+
+        # Configuración del gráfico
+        plt.figure(figsize=(10, 8))
+
+        # Puntos del conjunto de entrenamiento
+        plt.scatter(
+            training_latent_points[:, 0], training_latent_points[:, 1],
+            label="Letras de Entrenamiento", alpha=0.7, s=50
+        )
+        for i, label in enumerate(character_labels):
+            plt.text(training_latent_points[i, 0] + 2, training_latent_points[i, 1] + 2, label, fontsize=9)
+
+        # Nuevos puntos generados
+        plt.scatter(
+            random_latent_points[:, 0], random_latent_points[:, 1],
+            color='red', marker='x', label="Nuevas Letras Generadas", s=70
+        )
+        for i, (x, y) in enumerate(random_latent_points):
+            plt.text(x + 2, y + 2, f"Gen{i+1}", fontsize=9, color="blue")
+
+        # Configuración del gráfico
+        plt.title("Espacio Latente: Letras de Entrenamiento y Generadas")
+        plt.xlabel("Dimensión 1")
+        plt.ylabel("Dimensión 2")
+        plt.legend()
+        plt.grid(True)
+
+        # Guardar o mostrar el gráfico
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            print(f"Gráfico guardado en: {save_path}")
+        else:
+            plt.show()
+
+    def generate_latent_points_in_grid(self, num_points, dim1_range, dim2_range):
+        """
+        Genera puntos aleatorios en una grilla bidimensional dentro de un rango definido.
+
+        Args:
+            num_points (int): Número de puntos a generar.
+            dim1_range (tuple): Rango de valores para la primera dimensión (min, max).
+            dim2_range (tuple): Rango de valores para la segunda dimensión (min, max).
+
+        Returns:
+            np.ndarray: Puntos generados aleatoriamente.
+        """
+        dim1_points = np.random.uniform(dim1_range[0], dim1_range[1], num_points)
+        dim2_points = np.random.uniform(dim2_range[0], dim2_range[1], num_points)
+        return np.column_stack((dim1_points, dim2_points))

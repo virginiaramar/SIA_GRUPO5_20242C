@@ -186,6 +186,8 @@ def main():
             seed=config.get("seed"), 
             init_method=config.get("init_method", "uniform") 
         )
+
+        weights_path = f"autoencoder_weights_repetition_{repetition}.pkl"
         
         # Entrenar autoencoder, pasando la iteración para nombrar los archivos
         losses = autoencoder.train(
@@ -194,6 +196,9 @@ def main():
             iteration=repetition, 
             save_prefix=f"training_repetition_{repetition}"
         )
+
+        autoencoder.save_weights(weights_path)
+        print(f"Pesos guardados en: {weights_path}")
 
         # Reconstruir datos
         reconstructed_data = autoencoder.reconstruct(font_data)
@@ -224,6 +229,47 @@ def main():
             character_labels=character_labels,
             save_path=f"reconstruction_error_repetition_{repetition}.png",
             save_txt_path=f"reconstruction_errors_repetition_{repetition}.txt"
+        )
+
+
+        # Generar nuevas letras desde puntos aleatorios del espacio latente
+        print("Generando nuevas letras desde puntos aleatorios del espacio latente...")
+        latent_dim = autoencoder.layers[autoencoder.latent_layer_index]
+        num_new_letters = 10  # Número de nuevas letras a generar
+        random_latent_points = autoencoder.generate_latent_points_in_grid(
+            num_points=num_new_letters,
+            dim1_range=(0, 100),  # Rango para Dim1
+            dim2_range=(-10, 250)  # Rango para Dim2
+        )
+
+        # Mostrar los puntos generados (x, y)
+        print("Puntos generados en el espacio latente:")
+        for i, (x, y) in enumerate(random_latent_points):
+            print(f"Punto {i+1}: x={x:.2f}, y={y:.2f}")
+
+        # Decodificar los puntos latentes
+        generated_letters = autoencoder.decode_latent_points(random_latent_points)
+
+        # Visualizar las nuevas letras generadas
+        fig, axes = plt.subplots(1, num_new_letters, figsize=(15, 5))
+        for i, ax in enumerate(axes):
+            ax.imshow(generated_letters[i].reshape(7, 5), cmap="gray")
+            ax.axis("off")
+            ax.set_title(f"Letra {i+1}")
+        plt.savefig(f"generated_letters_repetition_{repetition}.png", dpi=300)
+        print(f"Letras generadas guardadas en: generated_letters_repetition_{repetition}.png")
+        plt.close()    
+
+
+        # Obtener representación en el espacio latente
+        latent_space = autoencoder.get_latent_space(font_data)
+
+        # Visualizar el espacio latente combinado con puntos generados
+        autoencoder.plot_latent_space_with_generated(
+            training_latent_points=latent_space,
+            character_labels=character_labels[:len(latent_space)],
+            num_generated_points=10,  # Número de nuevas letras a generar
+            save_path="combined_latent_space_plot.png"  # Ruta para guardar el gráfico
         )
 
     print(f"\nFinalizado: Se completaron las {num_repetitions} repeticiones.")
