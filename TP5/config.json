@@ -4,7 +4,7 @@
     "initial_lr": 0.01,
     "decay_rate": 0.9995,
     "learning_rate": 0.01,
-    "epochs": 10000,
+    "epochs": 5000,
     "activation_fn": "relu",
     "variable_lr": false,
     "loss_function": "cross_entropy_loss",

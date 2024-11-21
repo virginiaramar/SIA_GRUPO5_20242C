@@ -250,15 +250,16 @@ def main():
         # Decodificar los puntos latentes
         generated_letters = autoencoder.decode_latent_points(random_latent_points)
 
-        # Visualizar las nuevas letras generadas
+        # Visualizar las nuevas letras generadas con colores invertidos
         fig, axes = plt.subplots(1, num_new_letters, figsize=(15, 5))
         for i, ax in enumerate(axes):
-            ax.imshow(generated_letters[i].reshape(7, 5), cmap="gray")
+            # Invertir los colores: 1 - matriz de la letra
+            ax.imshow(1 - generated_letters[i].reshape(7, 5), cmap="gray", vmin=0, vmax=1)
             ax.axis("off")
             ax.set_title(f"Letra {i+1}")
         plt.savefig(f"generated_letters_repetition_{repetition}.png", dpi=300)
         print(f"Letras generadas guardadas en: generated_letters_repetition_{repetition}.png")
-        plt.close()    
+        plt.close()
 
 
         # Obtener representación en el espacio latente
@@ -270,6 +271,43 @@ def main():
             character_labels=character_labels[:len(latent_space)],
             num_generated_points=10,  # Número de nuevas letras a generar
             save_path="combined_latent_space_plot.png"  # Ruta para guardar el gráfico
+        )
+
+        # Obtener representación en el espacio latente
+        latent_space = autoencoder.get_latent_space(font_data)
+
+        # Generar vector de concepto entre las letras "o" y "x"
+        reconstructed_letters = autoencoder.generate_concept_vector(
+            latent_space=latent_space,
+            character_labels=character_labels,
+            char_start="o",
+            char_end="x",
+            num_steps=10  # Número de puntos intermedios
+        )
+
+        # Visualizar transición
+        autoencoder.plot_concept_vector(
+            reconstructed_letters=reconstructed_letters,
+            char_start="o",
+            char_end="x",
+            save_path="concept_vector_o_to_x.png"
+        )
+
+        # Generar vector de concepto entre las letras "o" y "x"
+        interpolated_points = np.linspace(
+            latent_space[character_labels.index("o")],  # Coordenadas de "o"
+            latent_space[character_labels.index("x")],  # Coordenadas de "x"
+            num=10  # Número de puntos intermedios
+        )
+
+        # Graficar espacio latente con el vector de concepto
+        autoencoder.plot_latent_space_with_concept_vector(
+            latent_space=latent_space,
+            character_labels=character_labels,
+            char_start="o",
+            char_end="x",
+            interpolated_points=interpolated_points,
+            save_path="latent_space_concept_vector.png"
         )
 
     print(f"\nFinalizado: Se completaron las {num_repetitions} repeticiones.")

@@ -336,3 +336,156 @@ class Autoencoder:
         dim1_points = np.random.uniform(dim1_range[0], dim1_range[1], num_points)
         dim2_points = np.random.uniform(dim2_range[0], dim2_range[1], num_points)
         return np.column_stack((dim1_points, dim2_points))
+    
+    def generate_concept_vector(self, latent_space, character_labels, char_start, char_end, num_steps=10):
+        """
+        Genera un vector de concepto entre dos letras en el espacio latente y reconstruye los puntos intermedios.
+
+        Args:
+            latent_space (np.ndarray): Puntos en el espacio latente del conjunto de entrenamiento.
+            character_labels (list): Etiquetas asociadas a los puntos del espacio latente.
+            char_start (str): Letra inicial ("o").
+            char_end (str): Letra final ("x").
+            num_steps (int): Número de puntos intermedios a generar.
+
+        Returns:
+            np.ndarray: Reconstrucciones de los puntos intermedios.
+        """
+        # Obtener índices de las letras inicial y final en el espacio latente
+        idx_start = character_labels.index(char_start)
+        idx_end = character_labels.index(char_end)
+        
+        # Obtener coordenadas en el espacio latente
+        latent_start = latent_space[idx_start]
+        latent_end = latent_space[idx_end]
+
+        # Generar puntos intermedios usando interpolación lineal
+        interpolated_points = np.linspace(latent_start, latent_end, num_steps)
+
+        # Decodificar los puntos intermedios
+        reconstructed_letters = self.decode_latent_points(interpolated_points)
+
+        return reconstructed_letters
+    
+    def decode_latent_points(self, latent_points):
+        """
+        Decodifica puntos en el espacio latente para reconstruir datos.
+
+        Args:
+            latent_points (np.ndarray): Puntos en el espacio latente a decodificar.
+
+        Returns:
+            np.ndarray: Reconstrucciones decodificadas.
+        """
+        activations = {}  # Diccionario para almacenar activaciones de cada capa
+
+        # Inicializar el espacio latente como la primera activación de decodificación
+        activations[f"A{self.latent_layer_index}"] = latent_points
+
+        # Decodificar desde la capa latente hasta la capa de salida
+        for i in range(self.latent_layer_index + 1, len(self.layers)):
+            W = self.weights[f"W{i}"]  # Pesos de la capa i
+            b = self.biases[f"b{i}"]  # Sesgos de la capa i
+            Z = np.dot(activations[f"A{i-1}"], W) + b
+
+            # Aplicar función de activación
+            if i == len(self.layers) - 1:
+                # Última capa: usar sigmoid
+                A = sigmoid(Z)
+            else:
+                # Capas intermedias: usar la función de activación del modelo
+                A = self.activation_fn(Z)
+
+            # Guardar activación de la capa actual
+            activations[f"A{i}"] = A
+
+        # Retornar la activación de la última capa (capa de salida)
+        return activations[f"A{len(self.layers) - 1}"]
+    
+    def plot_concept_vector(self, reconstructed_letters, char_start, char_end, save_path=None):
+        """
+        Muestra la transición generada por el concepto vector en un gráfico.
+
+        Args:
+            reconstructed_letters (np.ndarray): Reconstrucciones de los puntos intermedios.
+            char_start (str): Letra inicial ("o").
+            char_end (str): Letra final ("x").
+            save_path (str, optional): Ruta para guardar el gráfico. Si no se proporciona, muestra el gráfico.
+        """
+        num_steps = len(reconstructed_letters)
+        fig, axes = plt.subplots(1, num_steps, figsize=(15, 5))
+        for i, ax in enumerate(axes):
+            ax.imshow(1 - reconstructed_letters[i].reshape(7, 5), cmap="gray", vmin=0, vmax=1)  # Invertir colores
+            ax.axis("off")
+            if i == 0:
+                ax.set_title(f"{char_start}", fontsize=12)
+            elif i == num_steps - 1:
+                ax.set_title(f"{char_end}", fontsize=12)
+            else:
+                ax.set_title(f"Paso {i+1}", fontsize=10)
+
+        if save_path:
+            plt.savefig(save_path, dpi=300)
+            print(f"Gráfico guardado en: {save_path}")
+        else:
+            plt.show()
+        plt.close()
+
+    def plot_latent_space_with_concept_vector(self, latent_space, character_labels, char_start, char_end, interpolated_points, save_path=None):
+        """
+        Grafica el espacio latente con las letras de entrenamiento, las letras inicial y final, y
+        los puntos intermedios generados por el concept vector.
+
+        Args:
+            latent_space (np.ndarray): Puntos en el espacio latente del conjunto de entrenamiento.
+            character_labels (list): Etiquetas de los caracteres correspondientes a los puntos del espacio latente.
+            char_start (str): Letra inicial ("o").
+            char_end (str): Letra final ("x").
+            interpolated_points (np.ndarray): Puntos intermedios generados por el concept vector.
+            save_path (str, optional): Ruta para guardar el gráfico. Si no se proporciona, muestra el gráfico.
+        """
+        import matplotlib.pyplot as plt
+
+        # Configuración del gráfico
+        plt.figure(figsize=(10, 8))
+
+        # Puntos del conjunto de entrenamiento
+        plt.scatter(latent_space[:, 0], latent_space[:, 1], alpha=0.7, label="Letras de Entrenamiento", s=50)
+
+        # Anotar etiquetas de las letras de entrenamiento
+        for i, label in enumerate(character_labels):
+            plt.text(latent_space[i, 0] + 1, latent_space[i, 1] + 1, label, fontsize=9)
+
+        # Obtener los puntos específicos de las letras inicial y final
+        idx_start = character_labels.index(char_start)
+        idx_end = character_labels.index(char_end)
+
+        start_point = latent_space[idx_start]
+        end_point = latent_space[idx_end]
+
+        # Puntos inicial y final
+        plt.scatter(start_point[0], start_point[1], color='red', label=f"Letra '{char_start}'", s=100)
+        plt.scatter(end_point[0], end_point[1], color='green', label=f"Letra '{char_end}'", s=100)
+
+        # Puntos intermedios generados
+        plt.scatter(interpolated_points[:, 0], interpolated_points[:, 1], color='blue', label="Puntos Intermedios", s=70)
+
+        # Conectar los puntos con una línea
+        for i, (x, y) in enumerate(interpolated_points):
+            plt.text(x + 1, y + 1, f"P{i+1}", fontsize=8, color="blue")
+        plt.plot(interpolated_points[:, 0], interpolated_points[:, 1], linestyle="--", color="blue", alpha=0.7)
+
+        # Configuración final del gráfico
+        plt.title("Espacio Latente: Vector de Concepto entre Letras")
+        plt.xlabel("Dimensión 1")
+        plt.ylabel("Dimensión 2")
+        plt.legend()
+        plt.grid(True)
+
+        # Guardar o mostrar el gráfico
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            print(f"Gráfico guardado en: {save_path}")
+        else:
+            plt.show()
+        plt.close()
