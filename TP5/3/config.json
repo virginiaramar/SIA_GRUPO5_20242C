@@ -1,0 +1,16 @@
+{
+    "input_dim": 550,
+    "encoder_layers": [ 25,54],
+    "latent_dim": 2,
+    "decoder_layers": [54,128],
+    "activation_fn": "relu",
+    "optimizer": "adam",
+    "learning_rate": 0.005,
+    "initial_lr": 0.001,
+    "decay_rate": 0.9,
+    "epochs": 6000,
+    "variable_lr": false
+}
+
+
+
