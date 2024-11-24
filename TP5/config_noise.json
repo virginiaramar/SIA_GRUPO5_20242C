@@ -3,12 +3,13 @@
     "layers": [35, 25, 10, 2, 10, 25, 35],
     "initial_lr": 0.001,
     "decay_rate": 0.999,
-    "learning_rate": 0.01,
+    "learning_rate": 0.001,
     "epochs": 8000,
     "activation_fn": "relu",
     "variable_lr": false,
     "loss_function": "cross_entropy_loss",
     "optimizer": "adam",
-    "n_runs": 4
+    "n_runs": 4,
+    "noise_type": "salt_and_pepper",
+    "noise_level": 0.1
 }
-

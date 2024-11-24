@@ -148,27 +148,21 @@ class Autoencoder:
                 self.weights[f"W{i}"] -= lr * grads[f"dW{i}"]
                 self.biases[f"b{i}"] -= lr * grads[f"db{i}"]
 
-    def train(self, X, epochs, iteration=1, save_prefix="training"):
+    def train(self, noisy_X, original_X, epochs, iteration=1, save_prefix="training"):
         """
-        Entrena el modelo y guarda las pérdidas y la gráfica.
-
-        Args:
-            X (np.ndarray): Datos de entrada para el entrenamiento.
-            epochs (int): Número de épocas.
-            iteration (int): Número de iteración/repetición actual.
-            save_prefix (str): Prefijo base para los nombres de los archivos generados.
+        Entrena el modelo para minimizar la diferencia entre los datos reconstruidos y los originales.
         """
         losses = []
         for epoch in range(epochs):
             # Propagación hacia adelante
-            activations, Z_values = self.forward_propagation(X)
+            activations, Z_values = self.forward_propagation(noisy_X)
 
-            # Calcular la pérdida
-            loss = self.loss_fn(X, activations[f"A{len(self.weights)}"])
+            # Calcular la pérdida con los datos originales
+            loss = self.loss_fn(original_X, activations[f"A{len(self.weights)}"])
             losses.append(loss)
 
             # Retropropagación
-            grads = self.backward_propagation(X, activations, Z_values)
+            grads = self.backward_propagation(original_X, activations, Z_values)
 
             # Actualizar parámetros
             self.update_parameters(grads, epoch)
@@ -177,28 +171,33 @@ class Autoencoder:
             if (epoch + 1) % 500 == 0 or epoch == 0:
                 print(f"Repetición {iteration}, Época {epoch + 1}/{epochs}, Pérdida: {loss:.6f}")
 
-        # Guardar la gráfica de pérdidas
+        # Guardar curva de pérdida
+        self.plot_loss_curve(losses, iteration, save_prefix)
+        return losses
+    
+    def plot_loss_curve(self, losses, iteration, save_prefix):
+        """
+        Genera y guarda una gráfica de la curva de pérdida.
+        
+        Args:
+            losses (list): Lista de pérdidas durante el entrenamiento.
+            iteration (int): Número de iteración/repetición actual.
+            save_prefix (str): Prefijo base para los nombres de los archivos generados.
+        """
         plt.figure(figsize=(8, 6))
-        plt.plot(range(1, epochs + 1), losses, label='Pérdida de entrenamiento')
+        plt.plot(range(1, len(losses) + 1), losses, label='Pérdida de entrenamiento')
         plt.xlabel('Épocas')
         plt.ylabel('Pérdida')
-        plt.title('Curva de Pérdida durante el Entrenamiento')
+        plt.title(f'Curva de Pérdida durante el Entrenamiento (Iteración {iteration})')
         plt.legend()
+        
+        # Guardar el gráfico
         save_path = f"{save_prefix}_iteration_{iteration}_loss.png"
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        plt.close()  # Cerrar el gráfico para liberar memoria
-        print(f"Imagen guardada en: {save_path}")
+        plt.close()  # Liberar memoria
+        print(f"Gráfico de pérdida guardado en: {save_path}")
 
-        # Guardar la pérdida en un archivo de texto
-        loss_file = f"{save_prefix}_iteration_{iteration}_losses.txt"
-        with open(loss_file, "w") as file:
-            file.write("Época\tPérdida\n")  # Encabezado
-            for epoch, loss in enumerate(losses, start=1):
-                file.write(f"{epoch}\t{loss:.6f}\n")  # Escribir la época y la pérdida con 6 decimales
 
-        print(f"Pérdidas guardadas en el archivo: {loss_file}")
-
-        return losses
 
     def reconstruct(self, X):
         activations, _ = self.forward_propagation(X)
