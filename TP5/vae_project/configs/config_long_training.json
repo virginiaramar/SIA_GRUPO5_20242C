@@ -1,0 +1,22 @@
+{
+    "data": {
+        "input_size": [64, 64],
+        "channels": 3,
+        "batch_size": 2
+    },
+    "model": {
+        "latent_dim": 32,
+        "encoder_layers": [
+            {"units": 256, "activation": "relu"},
+            {"units": 128, "activation": "relu"}
+        ],
+        "decoder_layers": [
+            {"units": 128, "activation": "relu"},
+            {"units": 256, "activation": "relu"}
+        ]
+    },
+    "training": {
+        "epochs": 1000,
+        "learning_rate": 0.00001
+    }
+}
