@@ -42,7 +42,7 @@ def add_noise(X, noise_type="salt_and_pepper", noise_level=0.2):
 
     return noisy_X
 
-def compare_original_vs_reconstruction(X, noisy_data, reconstructed_data, character_labels, num_chars=None):
+def compare_original_vs_reconstruction(X, noisy_data, reconstructed_data, character_labels, num_chars=None, save_path=None):
     if num_chars is None:
         num_chars = X.shape[0]
     num_chars = min(num_chars, X.shape[0])
@@ -79,12 +79,17 @@ def compare_original_vs_reconstruction(X, noisy_data, reconstructed_data, charac
     fig.text(0.5, 0.6, 'Con Ruido', ha='center', va='bottom', fontsize=14)
     fig.text(0.5, 0.28, 'Reconstruidos', ha='center', va='bottom', fontsize=14)
 
-    # Mostrar el gráfico con los títulos correctos
-    plt.tight_layout()
-    plt.show()
+    # Guardar o mostrar el gráfico
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Gráfico guardado en: {save_path}")
+    else:
+        plt.tight_layout()
+        plt.show()
 
 
-def plot_latent_space(latent_space, labels=None):
+
+def plot_latent_space(latent_space, labels=None, save_path=None):
     plt.figure(figsize=(8, 6))
     for i, point in enumerate(latent_space):
         plt.scatter(point[0], point[1], marker='o')
@@ -94,9 +99,16 @@ def plot_latent_space(latent_space, labels=None):
     plt.xlabel("Dimensión 1")
     plt.ylabel("Dimensión 2")
     plt.grid(True)
-    plt.show()
 
-def plot_reconstruction_error(errors, character_labels=None):
+    # Guardar o mostrar el gráfico
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Gráfico guardado en: {save_path}")
+    else:
+        plt.show()
+
+
+def plot_reconstruction_error(errors, character_labels=None, save_path=None):
     plt.figure(figsize=(10, 6))
     
     # Si no se proporcionan las etiquetas de los caracteres, usamos los índices numéricos
@@ -116,8 +128,15 @@ def plot_reconstruction_error(errors, character_labels=None):
     plt.xlabel("Carácter")
     plt.ylabel("Error Total")
     plt.legend()
-    plt.tight_layout()
-    plt.show()
+
+    # Guardar o mostrar el gráfico
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Gráfico guardado en: {save_path}")
+    else:
+        plt.tight_layout()
+        plt.show()
+
 
 def main():
     # Leer configuración
@@ -137,11 +156,12 @@ def main():
         layers=config["layers"],
         activation_fn_name=config["activation_fn"],
         loss_fn_name=config["loss_function"],
-        optimizer=config.get("optimizer", "gd"),
+        optimizer=config["optimizer"],
         learning_rate=config["learning_rate"],
-        initial_lr=config.get("initial_lr"),
-        decay_rate=config.get("decay_rate"),
-        variable_lr=config.get("variable_lr", False)
+        initial_lr=config["initial_lr"],
+        decay_rate=config["decay_rate"],
+        variable_lr=config["variable_lr"],
+        seed=42
     )
 
     # Cargar etiquetas de caracteres
@@ -151,31 +171,26 @@ def main():
     ]
 
     # Entrenar autoencoder
+    # Entrenar autoencoder
     losses = autoencoder.train(noisy_font_data, font_data, epochs=config["epochs"])
-
 
     # Reconstruir datos
     reconstructed_data = autoencoder.reconstruct(noisy_font_data)
 
     # Comparar caracteres originales y reconstruidos
-    # Comparar caracteres originales, con ruido y reconstruidos
-    compare_original_vs_reconstruction(font_data, noisy_font_data, reconstructed_data, character_labels)
-
+    compare_original_vs_reconstruction(font_data, noisy_font_data, reconstructed_data, character_labels, save_path="results_1b/or_vs_recons_90salt.png")
 
     # Obtener representación en el espacio latente
     latent_space = autoencoder.get_latent_space(noisy_font_data)
 
-    # Generar etiquetas para los caracteres (opcional)
-    labels = character_labels[:len(latent_space)] 
-
     # Graficar espacio latente
-    plot_latent_space(latent_space, labels=labels)
+    plot_latent_space(latent_space, labels=character_labels[:len(latent_space)], save_path="results_1b/latent_space_90salt.png")
 
     # Calcular error de reconstrucción por carácter
     reconstruction_error = np.sum(np.abs(font_data - reconstructed_data), axis=1)
 
     # Graficar error de reconstrucción
-    plot_reconstruction_error(reconstruction_error, character_labels=character_labels)
+    plot_reconstruction_error(reconstruction_error, character_labels=character_labels, save_path="results_1b/reconspix_90salt_error.png")
 
 if __name__ == "__main__":
     main()

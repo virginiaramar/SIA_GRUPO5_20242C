@@ -7,7 +7,7 @@ from utils import (
 )
 
 class Autoencoder:
-    def __init__(self, layers, activation_fn_name, loss_fn_name, optimizer='gd', learning_rate=0.001, initial_lr=None, decay_rate=None, variable_lr=False, seed=None, init_method="xavier"):
+    def __init__(self, layers, activation_fn_name, loss_fn_name, optimizer, learning_rate, initial_lr=None, decay_rate=None, variable_lr=None, seed=None, init_method="uniform"):
         self.layers = layers
         self.activation_fn_name = activation_fn_name
         self.activation_fn = globals()[activation_fn_name]
