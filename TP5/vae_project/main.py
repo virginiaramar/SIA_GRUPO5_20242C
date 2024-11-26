@@ -75,26 +75,27 @@ def print_training_info(config, data_shape):
 def visualize_all(vae, data, history, filenames, save_dir="output/images"):
     """Genera y guarda todas las visualizaciones"""
     print("\nGenerando visualizaciones...")
-    
+
     # Reconstrucción
     print("1. Generando reconstrucción...")
     original_sample = data[:1]
     reconstructed_sample = vae.forward(original_sample)
     plot_reconstruction(original_sample, reconstructed_sample, save_dir)
-    
+
     # Loss
     print("2. Generando gráfico de pérdida...")
     plot_loss(history, save_dir)
-    
+
     # Espacio latente
     print("3. Generando visualización del espacio latente...")
-    plot_latent_space(vae, data, filenames, save_dir)
-    
+    min_x, max_x, min_y, max_y = plot_latent_space(vae, data, filenames, save_dir)
+
     # Traversal del espacio latente
     print("4. Generando traversal del espacio latente...")
-    show_latent_traversal(vae, save_dir)
-    
+    show_latent_traversal(vae, min_x, max_x, min_y, max_y, save_dir)
+
     print("\nTodas las visualizaciones han sido guardadas en:", save_dir)
+
 
 def main(config_path):
     # Cargar configuración

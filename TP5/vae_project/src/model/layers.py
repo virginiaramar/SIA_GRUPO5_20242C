@@ -99,7 +99,7 @@ class Sampling(Layer):
 
     def forward(self, input):
         self.mean = input[:, :self.latent_dim]
-        self.log_var = np.clip(input[:, self.latent_dim:], -20, 2)
+        self.log_var = np.clip(input[:, self.latent_dim:], -10, 10)
         self.std = np.exp(0.5 * self.log_var)
         self.epsilon = np.random.normal(0, 1, self.mean.shape)
         return self.mean + self.std * self.epsilon
@@ -107,5 +107,5 @@ class Sampling(Layer):
     def backward(self, output_gradient, learning_rate):
         d_mean = output_gradient
         d_std = output_gradient * self.epsilon
-        d_log_var = d_std * self.std * 0.5
+        d_log_var = d_std * self.std * 0.5 * np.exp(-0.5 * self.log_var)
         return np.concatenate([d_mean, d_log_var], axis=1)

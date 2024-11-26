@@ -65,75 +65,135 @@ def plot_loss(history, save_dir="output/images"):
     plt.close()
     print("Gráfico de pérdida guardado en:", save_path)
 
+# def plot_latent_space(vae, data, filenames, save_dir="output/images"):
+#     """Visualiza el espacio latente con nombres de archivo"""
+#     # Configurar figura
+#     fig, ax = plt.subplots(figsize=(12, 8))
+#     ax.set_facecolor('black')
+#     fig.patch.set_facecolor('black')
+#
+#     # Obtener representaciones latentes
+#     latent_representations = []
+#     for img in data:
+#         z = vae.encode(img.reshape(1, -1))
+#         latent_representations.append(z[0])
+#
+#     latent_representations = np.array(latent_representations)
+#
+#     # PCA si es necesario
+#     if latent_representations.shape[1] > 2:
+#         pca = PCA(n_components=2)
+#         latent_2d = pca.fit_transform(latent_representations)
+#         explained_variance = pca.explained_variance_ratio_
+#         print(f"Varianza explicada: {explained_variance * 100}%")
+#     else:
+#         latent_2d = latent_representations
+#
+#     x = latent_2d[:, 0]
+#     y = latent_2d[:, 1]
+#
+#     # Plotear puntos
+#     scatter = ax.scatter(x, y, c=range(len(x)), cmap='viridis',
+#                         s=100, alpha=0.6)
+#
+#     # Añadir nombres
+#     for i, filename in enumerate(filenames):
+#         name = os.path.splitext(filename)[0]
+#         ax.annotate(name,
+#                    (x[i], y[i]),
+#                    xytext=(5, 5),
+#                    textcoords='offset points',
+#                    color='white',
+#                    fontsize=10,
+#                    bbox=dict(facecolor='black', alpha=0.7))
+#
+#     # Personalización
+#     ax.set_title('Distribución en el Espacio Latente',
+#                 fontsize=14, pad=20, color='white')
+#     ax.set_xlabel('Componente Principal 1', fontsize=12, color='white')
+#     ax.set_ylabel('Componente Principal 2', fontsize=12, color='white')
+#     ax.grid(True, linestyle='--', alpha=0.3, color='white')
+#     ax.set_aspect('equal')
+#
+#     # Colorbar
+#     plt.colorbar(scatter, label='Índice de imagen')
+#
+#     os.makedirs(save_dir, exist_ok=True)
+#     save_path = os.path.join(save_dir, 'latent_space.png')
+#     plt.savefig(save_path, bbox_inches='tight', dpi=300,
+#                 facecolor='black', edgecolor='none')
+#     plt.close()
+#     print("Espacio latente guardado en:", save_path)
+
 def plot_latent_space(vae, data, filenames, save_dir="output/images"):
-    """Visualiza el espacio latente con nombres de archivo"""
-    # Configurar figura
-    fig, ax = plt.subplots(figsize=(12, 8))
-    ax.set_facecolor('black')
-    fig.patch.set_facecolor('black')
-    
+    """Visualiza el espacio latente con coordenadas x e y explícitas y retorna rangos."""
     # Obtener representaciones latentes
     latent_representations = []
     for img in data:
         z = vae.encode(img.reshape(1, -1))
         latent_representations.append(z[0])
-    
+
     latent_representations = np.array(latent_representations)
-    
-    # PCA si es necesario
+
+    # PCA para reducir dimensiones si hay más de 2
     if latent_representations.shape[1] > 2:
         pca = PCA(n_components=2)
         latent_2d = pca.fit_transform(latent_representations)
         explained_variance = pca.explained_variance_ratio_
-        print(f"Varianza explicada: {explained_variance * 100}%")
+        print(f"Varianza explicada por las dos primeras dimensiones: {explained_variance * 100}%")
     else:
         latent_2d = latent_representations
-    
+
     x = latent_2d[:, 0]
     y = latent_2d[:, 1]
-    
-    # Plotear puntos
-    scatter = ax.scatter(x, y, c=range(len(x)), cmap='viridis', 
-                        s=100, alpha=0.6)
-    
-    # Añadir nombres
-    for i, filename in enumerate(filenames):
-        name = os.path.splitext(filename)[0]
-        ax.annotate(name,
-                   (x[i], y[i]),
-                   xytext=(5, 5),
-                   textcoords='offset points',
-                   color='white',
-                   fontsize=10,
-                   bbox=dict(facecolor='black', alpha=0.7))
-    
-    # Personalización
-    ax.set_title('Distribución en el Espacio Latente',
-                fontsize=14, pad=20, color='white')
-    ax.set_xlabel('Componente Principal 1', fontsize=12, color='white')
-    ax.set_ylabel('Componente Principal 2', fontsize=12, color='white')
-    ax.grid(True, linestyle='--', alpha=0.3, color='white')
-    ax.set_aspect('equal')
-    
-    # Colorbar
-    plt.colorbar(scatter, label='Índice de imagen')
-    
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, 'latent_space.png')
-    plt.savefig(save_path, bbox_inches='tight', dpi=300,
-                facecolor='black', edgecolor='none')
-    plt.close()
-    print("Espacio latente guardado en:", save_path)
 
-def show_latent_traversal(vae, save_dir="output/images", n_steps=8):
-    """Muestra cómo cambian las imágenes al atravesar el espacio latente"""
-    # Crear grid para las dos primeras dimensiones
-    x = np.linspace(-2, 2, n_steps)
-    y = np.linspace(-2, 2, n_steps)
-    
+    # Determinar los rangos mínimos y máximos
+    min_x, max_x = x.min(), x.max()
+    min_y, max_y = y.min(), y.max()
+
+    # Configurar figura
+    plt.figure(figsize=(12, 8))
+    plt.title("Visualización del Espacio Latente", fontsize=16, pad=20)
+    plt.xlabel("Dimensión Latente 1", fontsize=14)
+    plt.ylabel("Dimensión Latente 2", fontsize=14)
+
+    # Dibujar puntos en el espacio latente
+    scatter = plt.scatter(x, y, c=range(len(x)), cmap='viridis', s=50, alpha=0.7, edgecolors="k")
+
+    # Añadir etiquetas opcionales
+    for i, filename in enumerate(filenames):
+        plt.annotate(
+            os.path.splitext(filename)[0],
+            (x[i], y[i]),
+            xytext=(5, 5),
+            textcoords="offset points",
+            fontsize=9,
+            alpha=0.7
+        )
+
+    # Añadir grid y colorbar
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.colorbar(scatter, label="Índice de Imagen")
+
+    # Guardar el gráfico
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, 'latent_space_visualization.png')
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Visualización del espacio latente guardada en: {save_path}")
+
+    return min_x, max_x, min_y, max_y
+
+
+def show_latent_traversal(vae, min_x, max_x, min_y, max_y, save_dir="output/images", n_steps=25):
+    """Muestra cómo cambian las imágenes al atravesar el espacio latente."""
+    # Crear grid dinámico basado en min_x, max_x, min_y, max_y
+    x = np.linspace(min_x, max_x, n_steps)
+    y = np.linspace(min_y, max_y, n_steps)
+
     fig, axes = plt.subplots(n_steps, n_steps, figsize=(15, 15))
     fig.suptitle('Traversal del Espacio Latente\n(Primeras 2 dimensiones)', fontsize=16)
-    
+
     # Generar imágenes
     for i, xi in enumerate(x):
         for j, yi in enumerate(y):
@@ -142,7 +202,7 @@ def show_latent_traversal(vae, save_dir="output/images", n_steps=8):
             z[0, 0] = xi  # Primera dimensión
             z[0, 1] = yi  # Segunda dimensión
             # Las otras dimensiones quedan en 0
-            
+
             try:
                 img = vae.decode(z)
                 img = img.reshape(64, 64, 3)
@@ -150,22 +210,23 @@ def show_latent_traversal(vae, save_dir="output/images", n_steps=8):
             except Exception as e:
                 print(f"Error en posición ({i}, {j}): {str(e)}")
                 img = np.zeros((64, 64, 3))  # Imagen negra en caso de error
-            
+
             axes[i, j].imshow(img)
             axes[i, j].axis('off')
-            
+
             # Añadir valores de coordenadas
             if i == 0:
                 axes[i, j].set_title(f'y: {yi:.1f}')
             if j == 0:
                 axes[i, 0].set_ylabel(f'x: {xi:.1f}')
-    
+
     plt.tight_layout()
     os.makedirs(save_dir, exist_ok=True)
     save_path = os.path.join(save_dir, 'latent_traversal.png')
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
     print("Traversal del espacio latente guardado en:", save_path)
+
 
 def visualize_all(vae, data, history, filenames, save_dir="output/images"):
     """Genera todas las visualizaciones"""
