@@ -77,7 +77,7 @@ Edita el archivo `config.json` para personalizar la configuración del modelo. E
     "seed": 42,
     "init_method": "uniform"
 }
-
+```
 ---
 
 # Implementación de un Denoising Autoencoder - Ejercicio 1B
@@ -136,4 +136,4 @@ Edita el archivo `config_noise.json` para personalizar la configuración del mod
     "noise_level": 0.9,
     "seed": 43
 }
-
+```
