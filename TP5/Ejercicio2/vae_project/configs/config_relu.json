@@ -1,0 +1,31 @@
+{
+    "data": {
+        "input_size": [64, 64],
+        "channels": 3,
+        "batch_size": 2,
+        "validation_split": 0.2
+    },
+    "model": {
+        "latent_dim": 16,
+        "encoder_layers": [
+            {"units": 256, "activation": "relu"},
+            {"units": 128, "activation": "relu"},
+            {"units": 64, "activation": "relu"}
+        ],
+        "decoder_layers": [
+            {"units": 64, "activation": "relu"},
+            {"units": 128, "activation": "relu"},
+            {"units": 256, "activation": "relu"}
+        ]
+    },
+    "training": {
+        "epochs": 200,
+        "learning_rate": 0.001,
+        "batch_size": 2
+    },
+    "paths": {
+        "data_dir": "input/emojis/",
+        "save_dir": "output/models/",
+        "log_dir": "logs/"
+    }
+}
