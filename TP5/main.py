@@ -269,8 +269,8 @@ def main():
         autoencoder.plot_latent_space_with_generated(
             training_latent_points=latent_space,
             character_labels=character_labels[:len(latent_space)],
-            num_generated_points=10,  # Número de nuevas letras a generar
-            save_path="combined_latent_space_plot.png"  # Ruta para guardar el gráfico
+            generated_points=random_latent_points,  # Pasar solo los puntos generados
+            save_path="combined_latent_space_plot.png"
         )
 
         # Obtener representación en el espacio latente

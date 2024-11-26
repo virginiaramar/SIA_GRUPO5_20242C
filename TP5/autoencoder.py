@@ -263,30 +263,22 @@ class Autoencoder:
         # Salida final del decodificador
         return activations[f"A{len(self.layers) - 1}"]
     
-    def plot_latent_space_with_generated(self, training_latent_points, character_labels, num_generated_points, save_path=None):
+    def plot_latent_space_with_generated(self, training_latent_points, character_labels, generated_points, save_path=None):
         """
-        Grafica el espacio latente con puntos de entrenamiento y puntos generados aleatoriamente
-        dentro del rango del conjunto de entrenamiento.
+        Grafica el espacio latente con puntos de entrenamiento y puntos generados.
 
         Args:
             training_latent_points (np.ndarray): Puntos del espacio latente del conjunto de entrenamiento.
             character_labels (list): Etiquetas de los caracteres correspondientes a los puntos de entrenamiento.
-            num_generated_points (int): Número de nuevos puntos generados aleatoriamente.
+            generated_points (np.ndarray): Puntos generados manualmente en el espacio latente.
             save_path (str, optional): Ruta para guardar el gráfico. Si no se proporciona, muestra el gráfico.
         """
         import matplotlib.pyplot as plt
         import numpy as np
 
-        # Obtener rangos del conjunto de entrenamiento
-        dim1_min, dim1_max = training_latent_points[:, 0].min(), training_latent_points[:, 0].max()
-        dim2_min, dim2_max = training_latent_points[:, 1].min(), training_latent_points[:, 1].max()
-
-        # Generar nuevos puntos aleatorios dentro del rango observado
-        random_latent_points = np.random.uniform(
-            low=[dim1_min, dim2_min],
-            high=[dim1_max, dim2_max],
-            size=(num_generated_points, 2)
-        )
+        # Validar que `generated_points` fue proporcionado y es un arreglo NumPy
+        if not isinstance(generated_points, np.ndarray):
+            raise TypeError("`generated_points` debe ser un arreglo NumPy de puntos generados.")
 
         # Configuración del gráfico
         plt.figure(figsize=(10, 8))
@@ -299,12 +291,12 @@ class Autoencoder:
         for i, label in enumerate(character_labels):
             plt.text(training_latent_points[i, 0] + 2, training_latent_points[i, 1] + 2, label, fontsize=9)
 
-        # Nuevos puntos generados
+        # Puntos generados
         plt.scatter(
-            random_latent_points[:, 0], random_latent_points[:, 1],
+            generated_points[:, 0], generated_points[:, 1],
             color='red', marker='x', label="Nuevas Letras Generadas", s=70
         )
-        for i, (x, y) in enumerate(random_latent_points):
+        for i, (x, y) in enumerate(generated_points):
             plt.text(x + 2, y + 2, f"Gen{i+1}", fontsize=9, color="blue")
 
         # Configuración del gráfico
@@ -335,6 +327,9 @@ class Autoencoder:
         """
         dim1_points = np.random.uniform(dim1_range[0], dim1_range[1], num_points)
         dim2_points = np.random.uniform(dim2_range[0], dim2_range[1], num_points)
+        #for i in range(100):
+        #    dim1_points = np.random.uniform(dim1_range[0], 40, num_points)
+        #    dim2_points = np.random.uniform(dim2_range[0], 50, num_points)
         return np.column_stack((dim1_points, dim2_points))
     
     def generate_concept_vector(self, latent_space, character_labels, char_start, char_end, num_steps=10):
@@ -489,3 +484,83 @@ class Autoencoder:
         else:
             plt.show()
         plt.close()
+
+    def analyze_and_generate_latent_points(self, latent_space, num_points=10, save_path=None):   
+        """
+        Analiza la distribución del espacio latente y genera nuevos puntos basados en la distribución.
+
+        Args:
+            latent_space (np.ndarray): Coordenadas del espacio latente de las letras de entrenamiento.
+            num_points (int): Número de puntos nuevos a generar.
+            save_path (str, optional): Ruta para guardar el gráfico.
+
+        Returns:
+            np.ndarray: Puntos generados en el espacio latente.
+        """
+        # Calcular estadísticas del espacio latente
+        mean_dim1 = np.mean(latent_space[:, 0])  # Media de Dim1
+        std_dim1 = np.std(latent_space[:, 0])    # Desviación estándar de Dim1
+        mean_dim2 = np.mean(latent_space[:, 1])  # Media de Dim2
+        std_dim2 = np.std(latent_space[:, 1])    # Desviación estándar de Dim2
+
+        print(f"Dim1: Media={mean_dim1:.2f}, Desviación Estándar={std_dim1:.2f}")
+        print(f"Dim2: Media={mean_dim2:.2f}, Desviación Estándar={std_dim2:.2f}")
+
+        # Generar nuevos puntos en el espacio latente
+        generated_points_dim1 = np.random.normal(mean_dim1, std_dim1, num_points)
+        generated_points_dim2 = np.random.normal(mean_dim2, std_dim2, num_points)
+        generated_points = np.column_stack((generated_points_dim1, generated_points_dim2))
+
+        print("Puntos generados en el espacio latente:")
+        for i, (x, y) in enumerate(generated_points):
+            print(f"Punto {i+1}: x={x:.2f}, y={y:.2f}")
+
+        # Visualizar el espacio latente
+        plt.figure(figsize=(10, 8))
+        plt.scatter(latent_space[:, 0], latent_space[:, 1], label="Letras de Entrenamiento", alpha=0.6, c="blue")
+        plt.scatter(generated_points[:, 0], generated_points[:, 1], label="Puntos Generados", alpha=0.8, c="red", marker="x")
+        plt.title("Espacio Latente: Letras de Entrenamiento y Puntos Generados")
+        plt.xlabel("Dimensión 1")
+        plt.ylabel("Dimensión 2")
+        plt.legend()
+        plt.grid(True)
+
+        # Guardar o mostrar el gráfico
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Gráfico guardado en: {save_path}")
+        else:
+            plt.show()
+
+        return generated_points
+    
+        """
+        Genera puntos cercanos a letras aleatorias en el espacio latente,
+        pero a una distancia mínima y máxima específica.
+
+        Args:
+            latent_space (np.ndarray): Coordenadas del espacio latente.
+            num_points (int): Número de puntos a generar.
+            min_distance (float): Distancia mínima de separación del punto a la letra.
+            max_distance (float): Distancia máxima de separación del punto a la letra.
+
+        Returns:
+            np.ndarray: Nuevos puntos generados en el espacio latente.
+        """
+        generated_points = []
+        chosen_indices = np.random.choice(len(latent_space), size=num_points, replace=False)  # Elegir letras al azar
+
+        for index in chosen_indices:
+            base_point = latent_space[index]  # Coordenadas de la letra seleccionada
+
+            # Generar un vector de desplazamiento aleatorio
+            random_direction = np.random.normal(size=base_point.shape)  # Vector aleatorio
+            random_direction /= np.linalg.norm(random_direction)  # Normalizar a longitud 1
+
+            # Escalar el vector al rango deseado de distancias
+            distance = np.random.uniform(min_distance, max_distance)
+            new_point = base_point + random_direction * distance
+
+            generated_points.append(new_point)
+
+        return np.array(generated_points)
