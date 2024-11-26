@@ -1,0 +1,16 @@
+{
+    "file_path": "input/font_vectors.txt",
+    "layers": [35, 25, 15, 7, 2,7,15, 25, 35],
+    "initial_lr": 0.01,
+    "decay_rate": 0.999,
+    "learning_rate": 0.01,
+    "epochs": 9000,
+    "activation_fn": "relu",
+    "variable_lr": false,
+    "loss_function": "cross_entropy_loss",
+    "optimizer": "adam",
+    "n_runs":  1,
+    "noise_type": "salt_and_pepper",
+    "noise_level": 0.9,
+    "seed": 43
+}
